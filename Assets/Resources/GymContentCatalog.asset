@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b1000001000040008000000000000001, type: 3}
+  m_Name: GymContentCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymContentCatalog
+  playerResources:
+  - {fileID: 11400000, guid: 36f244f9155f617aaa24b6bf79c3e4b6, type: 2}
+  - {fileID: 11400000, guid: 1565e42780d327ecf9f6199ed7edb7c1, type: 2}
+  - {fileID: 11400000, guid: 1c3a7afd67f042af1b1f138bde2499e0, type: 2}
+  - {fileID: 11400000, guid: 604cfa460e0d80e30bcc875972c66c21, type: 2}
+  - {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
+  - {fileID: 11400000, guid: 29f046b09e5fd6878827043808d959ff, type: 2}
+  - {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
+  - {fileID: 11400000, guid: 373f1291b1bb0e6239d7c7789c78de3f, type: 2}
+  - {fileID: 11400000, guid: 4d5c7fa5ae857bb82bf09a6aed2c9d15, type: 2}
+  - {fileID: 11400000, guid: 19bbbbb4a91691f148c9da6a406db6e2, type: 2}
+  utilityStats:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 11400000, guid: a1000021000040008000000000000001, type: 2}
+  utilityPrefabs:
+  - {fileID: 2182821262973797412, guid: 708120c04af84294f92201f50ed230b8, type: 3}
+  - {fileID: 8623867169791830455, guid: c863de21257854333bdd292ab6db6c96, type: 3}
+  - {fileID: 4963793600319056534, guid: 99bdc5dbe8e50f07eb5dc27ef8cb4d2b, type: 3}
+  - {fileID: 1069933119306025937, guid: 4e88b4ceb0c36ced782e3dc7c74ada70, type: 3}
+  - {fileID: 107571076164795585, guid: eab19409f613a5c13a9b0a03678426ca, type: 3}
+  workoutMachines:
+  - machineName: Bench Press
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 1565e42780d327ecf9f6199ed7edb7c1, type: 2}
+    prefab: {fileID: 6038537539100602934, guid: 7f43946310a059a5990cee498288dd8a, type: 3}
+    buildCost: 25
+    dimensions: {x: 1.25, y: 1.25, z: 1.4}
+  - machineName: Arm Curl Machine
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 36f244f9155f617aaa24b6bf79c3e4b6, type: 2}
+    prefab: {fileID: 2202887068039575016, guid: c2b9465048e9a874e8512ca40d6267c0, type: 3}
+    buildCost: 25
+    dimensions: {x: 1.1, y: 1.35, z: 1.1}
+  - machineName: Leg Press
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 1c3a7afd67f042af1b1f138bde2499e0, type: 2}
+    prefab: {fileID: 747337023175519253, guid: ffee9f7434e5421188cde700b0828d70, type: 3}
+    buildCost: 30
+    dimensions: {x: 1.4, y: 1.4, z: 1.45}
+  - machineName: Treadmill
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 1c3a7afd67f042af1b1f138bde2499e0, type: 2}
+    prefab: {fileID: 2189399080156365071, guid: 60e9d211f58c9c27ea3d9d168723aa60, type: 3}
+    buildCost: 35
+    dimensions: {x: 0.9, y: 1.45, z: 1.4}
+  - machineName: Chest Fly Machine
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 1565e42780d327ecf9f6199ed7edb7c1, type: 2}
+    prefab: {fileID: 8803809133798758877, guid: 95f9ec1ce2f5513f4ad5965cb743813e, type: 3}
+    buildCost: 30
+    dimensions: {x: 1.4, y: 1.65, z: 1.35}
+  - machineName: Lat Pulldown Machine
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 604cfa460e0d80e30bcc875972c66c21, type: 2}
+    prefab: {fileID: 6864649140872659360, guid: 0a35508cc7a1888fbb6ab4da4ad7b33a, type: 3}
+    buildCost: 30
+    dimensions: {x: 1.2, y: 1.95, z: 1.2}
+  - machineName: Rowing Machine
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 604cfa460e0d80e30bcc875972c66c21, type: 2}
+    prefab: {fileID: 8352562707261092209, guid: 08bba6f714ea951a1bb91b7946f4e881, type: 3}
+    buildCost: 25
+    dimensions: {x: 0.85, y: 0.65, z: 1.4}
+  - machineName: Tricep Cable Machine
+    primaryStat: {fileID: 0}
+    secondaryStat: {fileID: 0}
+    gainResource: {fileID: 11400000, guid: 36f244f9155f617aaa24b6bf79c3e4b6, type: 2}
+    prefab: {fileID: 6796885976040685290, guid: 6675248f6ab257d9f93a5155480eafd0, type: 3}
+    buildCost: 25
+    dimensions: {x: 1.1, y: 1.9, z: 1.1}
