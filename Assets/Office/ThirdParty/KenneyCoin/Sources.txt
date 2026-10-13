@@ -1,0 +1,3 @@
+Coin by Kenney
+https://github.com/KenneyNL/Starter-Kit-3D-Platformer/blob/main/models/coin.glb
+MIT license included in LICENSE.md. Converted GLB to OBJ for Unity; geometry unchanged.

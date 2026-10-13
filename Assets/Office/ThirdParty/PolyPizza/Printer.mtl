@@ -1,0 +1,4 @@
+newmtl Material_0
+Kd 1.0 1.0 1.0
+d 1
+map_Kd Printer_0.png

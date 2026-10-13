@@ -1,0 +1,8 @@
+Factory Kit 3.0 by Kenney
+License: Creative Commons Zero (CC0). See License.txt.
+Source: https://kenney.nl/assets/factory-kit
+Author upload: https://opengameart.org/content/factory-kit
+Download: https://opengameart.org/sites/default/files/kenney_factory-kit_3.0.zip
+
+Original conveyor.fbx, conveyor-corner.fbx and colormap.png are unmodified.
+Office conveyor prefabs add supports, directional UV strips, UI and gameplay.

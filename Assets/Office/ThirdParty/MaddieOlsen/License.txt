@@ -1,0 +1,6 @@
+Ink-pad by maddieolsenn (Maddie Olsen)
+Source: https://sketchfab.com/3d-models/ink-pad-6ae77856d5a94c3f856d7c1f69afb38a
+Author: https://sketchfab.com/maddieolsenn
+License: Creative Commons Attribution 4.0 International
+https://creativecommons.org/licenses/by/4.0/
+Changes: converted GLB to OBJ, centered and scaled millimeters to meters. Unity wrapper adds a red pad insert and materials. Original geometry retained.

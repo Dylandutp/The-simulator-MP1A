@@ -1,0 +1,43 @@
+File Folder by Ryan Dewalt
+https://poly.pizza/m/fDhOEadpKWA
+Rubber Stamp by Poly by Google
+https://poly.pizza/m/3RdawRyAWKx
+Both models licensed under Creative Commons Attribution 3.0:
+https://creativecommons.org/licenses/by/3.0/
+Changes: converted GLB to OBJ, normalized dimensions/orientation, Unity URP materials.
+
+Potion Bottle by Quaternius
+https://poly.pizza/m/WJxYta4Z96
+Public Domain / CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+Changes: converted GLB to OBJ, resized, tinted blue and labeled INK for office use.
+
+Original GLB source files are included unchanged. Downloaded via Poly Pizza.
+
+Printer and Bookshelf by CreativeTrio (CC0 1.0)
+https://poly.pizza/m/77K2TCL5Lz
+https://poly.pizza/m/30Iealxb0p
+https://creativecommons.org/publicdomain/zero/1.0/
+Robot Arm by Yali Izzo (CC BY 3.0)
+https://poly.pizza/m/1JbGi41I1l1
+https://creativecommons.org/licenses/by/3.0/
+Changes: GLB to OBJ conversion, normalized dimensions, URP materials and machine assembly.
+
+OfficeChair - Quaternius
+https://poly.pizza/m/UfKvrZBK6C
+License: CC0 1.0
+Original GLB retained; converted to OBJ and scaled for the office environment.
+
+Houseplant - Quaternius
+https://poly.pizza/m/bfLOqIV5uP
+License: CC0 1.0
+Original GLB retained; converted to OBJ and scaled for the office environment.
+
+NoticeBoard - Poly by Google
+https://poly.pizza/m/fDpegPgEB0j
+License: CC-BY 3.0
+Original GLB retained; converted to OBJ and scaled for the office environment.
+
+WallClock - Poly by Google
+https://poly.pizza/m/5gAoMR2YHs3
+License: CC-BY 3.0
+Original GLB retained; converted to OBJ and scaled for the office environment.

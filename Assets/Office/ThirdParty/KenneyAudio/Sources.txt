@@ -1,0 +1,6 @@
+Kenney Interface Sounds (CC0)
+https://kenney.nl/assets/interface-sounds
+https://opengameart.org/content/interface-sounds
+click_001.ogg: button click
+pluck_001.ogg: item and tool pickup
+Original files unchanged.
