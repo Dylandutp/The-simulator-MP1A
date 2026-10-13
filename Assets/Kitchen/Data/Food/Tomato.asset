@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88443725a5a5594dada4913cfa4c5a9, type: 3}
+  m_Name: Tomato
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenFoodDefinition
+  displayName: Tomato
+  kind: 2
+  rawResource: {fileID: 11400000, guid: 16e2ec9c2d1e4964e854f72849cdbeb5, type: 2}
+  preparedResource: {fileID: 11400000, guid: 4c5dee2528625814caf6f5f23e704c7d, type: 2}
+  cookedResource: {fileID: 11400000, guid: 16e2ec9c2d1e4964e854f72849cdbeb5, type: 2}
+  prefab: {fileID: 5238645406793234513, guid: 773c5f6095bbaf7448cf0beb4bd5ff62, type: 3}
+  choppedPrefab: {fileID: 4130450675362354676, guid: 4ca752041b63f534fae596a3ae68547d, type: 3}
+  rawColor: {r: 0.83, g: 0.17, b: 0.075, a: 1}
+  cookedColor: {r: 0.72, g: 0.35, b: 0.09, a: 1}
+  burntColor: {r: 0.055, g: 0.04, b: 0.03, a: 1}
+  goodAtSeconds: 20
+  burntAtSeconds: 40
