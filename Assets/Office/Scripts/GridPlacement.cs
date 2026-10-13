@@ -125,7 +125,7 @@ namespace OfficeSim
             }
 
             bool valid = pointed && CanPlace(candidate, moving);
-            ghost.transform.position = OfficeRules.Position(candidate) + Vector3.up * .46f;
+            ghost.transform.position = OfficeRules.Position(candidate) + Vector3.up * (.46f * 2f / 3f);
             ghost.transform.rotation = Quaternion.Euler(0, turns * 90, 0);
             Color color = valid ? new Color(.15f, .85f, .6f, .4f) : new Color(.95f, .2f, .15f, .4f);
             previewColor.SetColor("_BaseColor", color);
@@ -177,8 +177,8 @@ namespace OfficeSim
             }
 
             var colliders = Physics.OverlapBox(
-                OfficeRules.Position(cell) + new Vector3(0, 0.8f, 0),
-                new Vector3(0.53f, 0.78f, 0.53f),
+                OfficeRules.Position(cell) + new Vector3(0, .8f * 2f / 3f, 0),
+                new Vector3(.53f, .78f * 2f / 3f, .53f),
                 Quaternion.identity,
                 obstacleMask,
                 QueryTriggerInteraction.Ignore);

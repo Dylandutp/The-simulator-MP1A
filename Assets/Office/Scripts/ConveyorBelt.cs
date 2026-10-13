@@ -136,7 +136,7 @@ namespace OfficeSim
                 }
             }
 
-            surfaceProperties.SetVector("_BaseMap_ST", new Vector4(1, 4, 0, offset));
+            surfaceProperties.SetFloat("_FlowOffset", offset);
             surfaceProperties.SetColor("_BaseColor", running ? new Color(0.1f, 0.55f, 1f) : new Color(0.65f, 0.15f, 0.12f));
             beltSurface.SetPropertyBlock(surfaceProperties);
         }

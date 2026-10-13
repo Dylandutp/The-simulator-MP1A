@@ -67,12 +67,14 @@ namespace OfficeSim
 
         public void ResetTool()
         {
+            Vector3 toolScale = currentTool.transform.lossyScale;
             currentTool.Retire();
 
             ResetContact();
             toolCooldown = 0;
             currentTool = Instantiate(toolPrefab, toolHome.position, toolHome.rotation);
             ConfigureTool(currentTool);
+            currentTool.transform.localScale = toolScale;
         }
 
         public bool Accept(OfficeItem item)
