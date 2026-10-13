@@ -10,25 +10,33 @@ namespace HouseSim.Kitchen
     public sealed class KitchenKnob : MonoBehaviour
     {
         public Transform knobVisual;
-        public Vector3 localAxis = Vector3.forward;
+        [Tooltip("Axis pointing out of the dial toward its user. Positive rotation increases the value clockwise.")]
+        public Vector3 localAxis = Vector3.back;
         public float minValue;
         public float maxValue = 60f;
-        public float step = 5f;
+        [Tooltip("Legacy authoring field. The physical dial is continuous and does not snap to steps.")]
+        public float step;
         public float angleRange = 270f;
         public TextMesh label;
         public string labelPrefix = "TIMER";
         public string unit = " s";
         public UnityEvent<float> valueChanged = new UnityEvent<float>();
         public float Value => currentValue;
+        public float NormalizedValue => Mathf.InverseLerp(minValue, maxValue, currentValue);
+        public float Angle => NormalizedValue * angleRange;
+        public Transform Pivot => knobVisual ? knobVisual : transform;
+        public Vector3 WorldAxis => Pivot.parent
+            ? Pivot.parent.TransformDirection(baseRotation * localAxis.normalized)
+            : baseRotation * localAxis.normalized;
+        public bool IsDragging { get; private set; }
         [SerializeField] private float currentValue;
 
         private XRSimpleInteractable interactable;
         private IXRSelectInteractor hand;
         private Quaternion baseRotation;
         private Vector3 previousVector;
-        private bool positionGesture;
+        private Quaternion previousHandRotation;
         private bool initialized;
-        private float rawAngle;
 
         private void Awake()
         {
@@ -38,7 +46,6 @@ namespace HouseSim.Kitchen
             interactable = GetComponent<XRSimpleInteractable>();
             interactable.selectEntered.AddListener(OnGrab);
             interactable.selectExited.AddListener(OnRelease);
-            interactable.activated.AddListener(OnActivated);
             currentValue = Mathf.Clamp(currentValue, minValue, maxValue);
             Refresh();
         }
@@ -48,57 +55,92 @@ namespace HouseSim.Kitchen
             if (!interactable) return;
             interactable.selectEntered.RemoveListener(OnGrab);
             interactable.selectExited.RemoveListener(OnRelease);
-            interactable.activated.RemoveListener(OnActivated);
         }
 
-        private Vector3 WorldAxis => knobVisual.parent
-            ? knobVisual.parent.TransformDirection(baseRotation * localAxis.normalized)
-            : baseRotation * localAxis.normalized;
-
-        private Vector3 GestureVector()
-        {
-            return Vector3.ProjectOnPlane(positionGesture
-                ? hand.transform.position - knobVisual.position
-                : hand.transform.up, WorldAxis);
-        }
+        private void OnDisable() => EndDrag();
 
         private void OnGrab(SelectEnterEventArgs args)
         {
             hand = args.interactorObject;
-            positionGesture = Vector3.ProjectOnPlane(hand.transform.position - knobVisual.position, WorldAxis).sqrMagnitude > 0.0009f;
-            previousVector = GestureVector();
-            rawAngle = Mathf.InverseLerp(minValue, maxValue, currentValue) * angleRange;
+            BeginDrag(hand.transform.position);
+            previousHandRotation = hand.transform.rotation;
         }
 
-        private void OnRelease(SelectExitEventArgs args) => hand = null;
-
-        private void OnActivated(ActivateEventArgs args)
+        private void OnRelease(SelectExitEventArgs args)
         {
-            float next = currentValue + (step > 0f ? step : 1f);
-            SetValue(next > maxValue + 0.001f ? minValue : next);
-            rawAngle = Mathf.InverseLerp(minValue, maxValue, currentValue) * angleRange;
-            if (hand != null) previousVector = GestureVector();
+            if (args.interactorObject == hand) EndDrag();
         }
 
         private void Update()
         {
-            if (hand == null) return;
-            Vector3 next = GestureVector();
+            if (hand == null || !IsDragging) return;
+            Vector3 axis = WorldAxis.normalized;
+            Vector3 nextVector = Vector3.ProjectOnPlane(hand.transform.position - Pivot.position, axis);
+            Quaternion nextRotation = hand.transform.rotation;
+            float positionDelta = 0f;
+            if (previousVector.sqrMagnitude > 0.0009f && nextVector.sqrMagnitude > 0.0009f)
+                positionDelta = SmallGestureDelta(Vector3.SignedAngle(previousVector, nextVector, axis));
+
+            // Extract the incremental wrist twist about the dial axis. Unlike projected
+            // controller-up vectors, this stays stable when a controller points along the axis.
+            Quaternion rotationDelta = nextRotation * Quaternion.Inverse(previousHandRotation);
+            float twistComponent = Vector3.Dot(new Vector3(rotationDelta.x, rotationDelta.y, rotationDelta.z), axis);
+            float wristDelta = 0f;
+            if (twistComponent * twistComponent + rotationDelta.w * rotationDelta.w > 0.000001f)
+                wristDelta = SmallGestureDelta(Mathf.DeltaAngle(0f,
+                    2f * Mathf.Atan2(twistComponent, rotationDelta.w) * Mathf.Rad2Deg));
+
+            // Either a wrist twist or an arc around the dial works from any grip offset.
+            // Taking one gesture avoids counting the same movement twice.
+            DragByDegrees(Mathf.Abs(wristDelta) >= Mathf.Abs(positionDelta) ? wristDelta : positionDelta);
+            previousVector = nextVector;
+            previousHandRotation = nextRotation;
+        }
+
+        private static float SmallGestureDelta(float degrees)
+        {
+            // Discard tracking discontinuities, but always advance the sampled pose above.
+            return Mathf.Abs(degrees) <= 60f ? degrees : 0f;
+        }
+
+        public void BeginDrag(Vector3 worldPosition)
+        {
+            IsDragging = true;
+            previousVector = Vector3.ProjectOnPlane(worldPosition - Pivot.position, WorldAxis);
+        }
+
+        public void DragTo(Vector3 worldPosition)
+        {
+            if (IsDragging) DragVector(Vector3.ProjectOnPlane(worldPosition - Pivot.position, WorldAxis));
+        }
+
+        private void DragVector(Vector3 next)
+        {
             if (next.sqrMagnitude > 0.0001f && previousVector.sqrMagnitude > 0.0001f)
-            {
-                rawAngle = Mathf.Clamp(rawAngle + Vector3.SignedAngle(previousVector, next, WorldAxis), 0f, Mathf.Max(1f, angleRange));
-                SetValue(Mathf.Lerp(minValue, maxValue, rawAngle / Mathf.Max(1f, angleRange)));
-            }
+                DragByDegrees(Vector3.SignedAngle(previousVector, next, WorldAxis));
             previousVector = next;
+        }
+
+        public void DragByDegrees(float clockwiseDegrees)
+        {
+            if (Mathf.Abs(angleRange) < 0.001f) return;
+            // Apply deltas to the current value so the oven can wind this dial back while it is held.
+            SetValue(currentValue + clockwiseDegrees / angleRange * (maxValue - minValue));
+        }
+
+        public void EndDrag()
+        {
+            hand = null;
+            IsDragging = false;
         }
 
         public void Adjust(float delta) => SetValue(currentValue + delta);
 
         public void SetValue(float value)
         {
+            if (float.IsNaN(value) || float.IsInfinity(value)) return;
             float next = Mathf.Clamp(value, minValue, maxValue);
-            if (step > 0f) next = Mathf.Clamp(minValue + Mathf.Round((next - minValue) / step) * step, minValue, maxValue);
-            if (Mathf.Approximately(next, currentValue)) { Refresh(); return; }
+            if (next == currentValue) { Refresh(); return; }
             currentValue = next;
             Refresh();
             valueChanged.Invoke(currentValue);
@@ -106,7 +148,7 @@ namespace HouseSim.Kitchen
 
         private void Refresh()
         {
-            if (initialized && knobVisual) knobVisual.localRotation = baseRotation * Quaternion.AngleAxis(Mathf.InverseLerp(minValue, maxValue, currentValue) * angleRange, localAxis.normalized);
+            if (initialized && knobVisual) knobVisual.localRotation = baseRotation * Quaternion.AngleAxis(Angle, localAxis.normalized);
             if (label) label.text = labelPrefix + "\n" + currentValue.ToString("0.#") + unit;
         }
     }

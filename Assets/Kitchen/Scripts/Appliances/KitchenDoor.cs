@@ -18,6 +18,12 @@ namespace HouseSim.Kitchen
         public UnityEvent<bool> stateChanged = new UnityEvent<bool>();
         public float OpenAmount => Mathf.InverseLerp(closedAngle, openAngle, currentAngle);
         public bool IsOpen { get; private set; }
+        public float Angle => currentAngle;
+        public Transform Pivot => pivot ? pivot : transform;
+        public Vector3 WorldAxis => Pivot.parent
+            ? Pivot.parent.TransformDirection(baseRotation * localAxis.normalized)
+            : baseRotation * localAxis.normalized;
+        public bool IsDragging { get; private set; }
 
         private XRSimpleInteractable interactable;
         private IXRSelectInteractor hand;
@@ -35,7 +41,6 @@ namespace HouseSim.Kitchen
             interactable = GetComponent<XRSimpleInteractable>();
             interactable.selectEntered.AddListener(OnGrab);
             interactable.selectExited.AddListener(OnRelease);
-            interactable.activated.AddListener(OnActivated);
             ApplyAngle();
         }
 
@@ -44,60 +49,70 @@ namespace HouseSim.Kitchen
             if (!interactable) return;
             interactable.selectEntered.RemoveListener(OnGrab);
             interactable.selectExited.RemoveListener(OnRelease);
-            interactable.activated.RemoveListener(OnActivated);
         }
 
-        private Vector3 WorldAxis => pivot.parent
-            ? pivot.parent.TransformDirection(baseRotation * localAxis.normalized)
-            : baseRotation * localAxis.normalized;
-
-        private Vector3 HandVector()
-        {
-            return Vector3.ProjectOnPlane(hand.transform.position - pivot.position, WorldAxis);
-        }
+        private void OnDisable() => EndDrag();
 
         private void OnGrab(SelectEnterEventArgs args)
         {
             hand = args.interactorObject;
-            movingToTarget = false;
-            targetAngle = currentAngle;
-            lastHandVector = HandVector();
+            BeginDrag(hand.transform.position);
         }
 
         private void OnRelease(SelectExitEventArgs args)
         {
-            hand = null;
-            if (movingToTarget) return;
-            targetAngle = currentAngle;
-            // The final few degrees latch closed, without pulling an open door shut.
-            if (OpenAmount < 0.07f) targetAngle = closedAngle;
+            if (args.interactorObject == hand) EndDrag();
         }
 
         private void Update()
         {
-            if (hand != null && !movingToTarget)
-            {
-                Vector3 next = HandVector();
-                if (lastHandVector.sqrMagnitude > 0.0001f && next.sqrMagnitude > 0.0001f)
-                    currentAngle += Vector3.SignedAngle(lastHandVector, next, WorldAxis);
-                currentAngle = Mathf.Clamp(currentAngle, Mathf.Min(closedAngle, openAngle), Mathf.Max(closedAngle, openAngle));
-                targetAngle = currentAngle;
-                lastHandVector = next;
-            }
-            else
+            if (hand != null && IsDragging && !movingToTarget) DragTo(hand.transform.position);
+            else if (movingToTarget)
             {
                 currentAngle = Mathf.MoveTowards(currentAngle, targetAngle, 150f * Time.deltaTime);
                 if (Mathf.Approximately(currentAngle, targetAngle) && movingToTarget)
                 {
                     movingToTarget = false;
-                    if (hand != null) lastHandVector = HandVector();
+                    if (hand != null) lastHandVector = Vector3.ProjectOnPlane(hand.transform.position - Pivot.position, WorldAxis);
                 }
             }
             ApplyAngle();
         }
 
+        public void BeginDrag(Vector3 worldPosition)
+        {
+            IsDragging = true;
+            movingToTarget = false;
+            targetAngle = currentAngle;
+            lastHandVector = Vector3.ProjectOnPlane(worldPosition - Pivot.position, WorldAxis);
+        }
+
+        public void DragTo(Vector3 worldPosition)
+        {
+            if (!IsDragging) return;
+            Vector3 next = Vector3.ProjectOnPlane(worldPosition - Pivot.position, WorldAxis);
+            if (lastHandVector.sqrMagnitude > 0.0001f && next.sqrMagnitude > 0.0001f)
+                DragByDegrees(Vector3.SignedAngle(lastHandVector, next, WorldAxis));
+            lastHandVector = next;
+        }
+
+        public void DragByDegrees(float signedDegrees)
+        {
+            if (float.IsNaN(signedDegrees) || float.IsInfinity(signedDegrees)) return;
+            currentAngle = Mathf.Clamp(currentAngle + signedDegrees, Mathf.Min(closedAngle, openAngle), Mathf.Max(closedAngle, openAngle));
+            targetAngle = currentAngle;
+            movingToTarget = false;
+            ApplyAngle();
+        }
+
+        public void EndDrag()
+        {
+            hand = null;
+            IsDragging = false;
+            // Leave the door exactly where it was released; neither grip nor release toggles it.
+        }
+
         public void Toggle() => SetOpen(!IsOpen);
-        private void OnActivated(ActivateEventArgs args) => Toggle();
 
         public void SetOpen(bool open)
         {
@@ -109,7 +124,7 @@ namespace HouseSim.Kitchen
         {
             currentAngle = targetAngle = open ? openAngle : closedAngle;
             movingToTarget = false;
-            if (hand != null) lastHandVector = HandVector();
+            if (hand != null) lastHandVector = Vector3.ProjectOnPlane(hand.transform.position - Pivot.position, WorldAxis);
             ApplyAngle();
         }
 

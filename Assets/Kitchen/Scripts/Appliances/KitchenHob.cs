@@ -14,7 +14,7 @@ namespace HouseSim.Kitchen
         public bool IsHeating { get; private set; }
         private MaterialPropertyBlock propertyBlock;
         private float nextLabelRefresh;
-        private int displayedPower = -1;
+        private float displayedPower = -1f;
         private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         private static readonly int ColorProperty = Shader.PropertyToID("_Color");
         private static readonly int Emission = Shader.PropertyToID("_EmissionColor");
@@ -30,8 +30,8 @@ namespace HouseSim.Kitchen
         public void Tick(float deltaTime)
         {
             if (float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f) return;
-            int power = powerKnob ? Mathf.Clamp(Mathf.RoundToInt(powerKnob.Value), 0, 3) : 0;
-            Color color = power == 0 ? new Color(0.10f, 0.10f, 0.12f) : Color.Lerp(new Color(0.48f, 0.025f, 0.01f), new Color(1f, 0.12f, 0.015f), (power - 1f) / 2f);
+            float power = powerKnob ? powerKnob.NormalizedValue : 0f;
+            Color color = Color.Lerp(new Color(0.10f, 0.10f, 0.12f), new Color(1f, 0.12f, 0.015f), power);
             if (ringRenderers != null && power != displayedPower)
             {
                 foreach (Renderer ring in ringRenderers)
@@ -40,7 +40,7 @@ namespace HouseSim.Kitchen
                     ring.GetPropertyBlock(propertyBlock);
                     propertyBlock.SetColor(BaseColor, color);
                     propertyBlock.SetColor(ColorProperty, color);
-                    propertyBlock.SetColor(Emission, power == 0 ? Color.black : color * power * 0.4f);
+                    propertyBlock.SetColor(Emission, new Color(1f, 0.12f, 0.015f) * (power * 1.2f));
                     ring.SetPropertyBlock(propertyBlock);
                 }
                 displayedPower = power;
@@ -48,11 +48,11 @@ namespace HouseSim.Kitchen
             IsHeating = power > 0 && PanIsOnBurner();
             RefreshLabel(power);
             if (!IsHeating) return;
-            float rate = power == 1 ? 0.5f : power == 2 ? 1f : 2f;
+            float rate = 2f * power;
             foreach (KitchenFood food in pan.GetSteaks()) food.ApplyHeat(deltaTime * rate);
         }
 
-        private void RefreshLabel(int power)
+        private void RefreshLabel(float power)
         {
             if (!label || Time.unscaledTime < nextLabelRefresh) return;
             nextLabelRefresh = Time.unscaledTime + 0.15f;
@@ -65,7 +65,7 @@ namespace HouseSim.Kitchen
                     break;
                 }
             }
-            label.text = "STOVE " + (power == 0 ? "OFF" : "LEVEL " + power) + "\n"
+            label.text = "STOVE " + (power == 0f ? "OFF" : (power * 100f).ToString("0.#") + "%") + "\n"
                 + (IsHeating ? "PAN HEATING" : power > 0 ? "PLACE PAN ON RING" : "TURN KNOB TO HEAT") + foodStatus;
         }
 

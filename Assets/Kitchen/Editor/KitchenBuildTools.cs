@@ -19,6 +19,11 @@ namespace HouseSim.Kitchen.Editor
             KitchenFoodChecks.Run();
             Preview();
         }
+        public static void ValidateAndPlay()
+        {
+            ValidateEditor();
+            KitchenPlayChecks.Run();
+        }
         [MenuItem("Kitchen/Build Windows Preview")]
         public static void BuildWindows()
         {
@@ -63,11 +68,13 @@ namespace HouseSim.Kitchen.Editor
         {
             EditorSceneManager.OpenScene("Assets/Kitchen/Scenes/Kitchen.unity");
             var go=new GameObject("Preview camera");var cam=go.AddComponent<Camera>();
-            cam.transform.position=new Vector3(3.3f,2.55f,-3.2f);cam.transform.LookAt(new Vector3(-.15f,1.0f,1.25f));
+            cam.transform.position=new Vector3(5.15f,3.15f,-4.35f);cam.transform.LookAt(new Vector3(-.3f,1.2f,1.8f));
             cam.fieldOfView=65;cam.nearClipPlane=.03f;cam.farClipPlane=50;cam.clearFlags=CameraClearFlags.SolidColor;cam.backgroundColor=new Color(.15f,.18f,.17f);
             Capture(cam,"Builds/Kitchen-Preview.png",1600,1100);
-            cam.transform.position=new Vector3(.25f,1.65f,-1.8f);cam.transform.LookAt(new Vector3(0,1.15f,2.55f));
+            cam.transform.position=new Vector3(.25f,1.65f,-2.4f);cam.transform.LookAt(new Vector3(0,1.15f,3.8f));
             Capture(cam,"Builds/Kitchen-PlayerView.png",1600,1000);
+            cam.transform.position=new Vector3(4.5f,1.98f,2.35f);cam.transform.LookAt(new Vector3(4.5f,1.98f,4.78f));
+            Capture(cam,"Builds/Kitchen-Recipes.png",1400,900);
             UnityEngine.Object.DestroyImmediate(go);
             Debug.Log("KITCHEN_PREVIEW_PASS");
         }

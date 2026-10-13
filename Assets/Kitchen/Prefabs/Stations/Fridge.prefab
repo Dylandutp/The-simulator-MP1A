@@ -320,7 +320,7 @@ Transform:
   m_GameObject: {fileID: 1503263505839862329}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.255, y: 1.185, z: -0.1}
+  m_LocalPosition: {x: 0.22, y: 1.21, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -625,7 +625,7 @@ Transform:
   m_GameObject: {fileID: 2468562069112889865}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.255, y: 1.7049999, z: -0.1}
+  m_LocalPosition: {x: 0.22, y: 1.73, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -914,7 +914,7 @@ Transform:
   m_GameObject: {fileID: 5546766129696419830}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.255, y: 0.665, z: -0.1}
+  m_LocalPosition: {x: 0.22, y: 0.69, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1373,7 +1373,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable
   m_InteractionManager: {fileID: 0}
-  m_Colliders: []
+  m_Colliders:
+  - {fileID: 5807384438775760423}
   m_InteractionLayers:
     m_Bits: 1
   m_DistanceCalculationMode: 1
@@ -1480,7 +1481,7 @@ Transform:
   m_GameObject: {fileID: 8147465025840199558}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.255, y: 0.665, z: -0.1}
+  m_LocalPosition: {x: -0.22, y: 0.69, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1514,8 +1515,8 @@ Transform:
   m_GameObject: {fileID: 8496914467319101518}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.94, y: 1.13, z: -0.07}
-  m_LocalScale: {x: 0.035, y: 0.43, z: 0.055}
+  m_LocalPosition: {x: 0.94, y: 1.13, z: -0.09}
+  m_LocalScale: {x: 0.055, y: 0.43, z: 0.085}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7487545006845569742}
@@ -1744,7 +1745,7 @@ Transform:
   m_GameObject: {fileID: 8782195085603573657}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.255, y: 1.7049999, z: -0.1}
+  m_LocalPosition: {x: -0.22, y: 1.73, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1775,7 +1776,7 @@ Transform:
   m_GameObject: {fileID: 8986464110842811264}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.255, y: 1.185, z: -0.1}
+  m_LocalPosition: {x: -0.22, y: 1.21, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

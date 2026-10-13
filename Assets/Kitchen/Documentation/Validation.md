@@ -4,18 +4,21 @@ Unity **6000.5.6f1**, XR Interaction Toolkit **3.5.1**, OpenXR **1.17.1**, Input
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Editor scene generation and compilation | Passed | `Logs/Kitchen-EditorValidation.log`, `KITCHEN_SCENE_BUILD_PASS` |
+| Editor scene generation and compilation | Passed | Final regeneration in `Logs/Kitchen-PlayChecks.log`, `KITCHEN_SCENE_BUILD_PASS` |
 | Food rule boundaries | Passed | Same log, `KITCHEN_FOOD_RULES_PASS`; exact chicken 20/40 and steak 8/18 boundaries, energy effects, cumulative wash |
-| Real Play Mode regression | **125 assertions passed**, editor teardown verified | `Logs/kitchen-play-checks.json`, `Logs/Kitchen-PlayChecks.log` |
-| Physical pan and steak | Passed | Dynamic bodies fall and settle; after 2.011 seconds steak had 1.750 cooking seconds; both velocities zero |
-| Desktop input path | Passed with in-process virtual devices | E opens door, wheel adjusts knob, left click grabs/claims, F consumes; no OS keyboard/mouse takeover |
+| Real Play Mode regression | **206 assertions passed**, editor teardown verified | `Logs/kitchen-play-checks.json`, `Logs/Kitchen-PlayChecks.log`; run UTC 2026-10-13T22:06:47 |
+| Physical pan and steak | Passed | Dynamic bodies fall and settle; after 2.007 seconds steak had 1.750 cooking seconds; both velocities zero |
+| Desktop input path | Passed with in-process virtual devices | Pointer-position raycasts and held LMB drag both doors, faucet, and both dials; CW/CCW, release, center-crossing, E/wheel inert for controls, food pickup/consumption; no OS input takeover |
+| Continuous heat and countdown | Passed | Fractional knob values, proportional heat rates, physical dial movement matching countdown and open-door pause |
+| HUD, room and fall recovery | Passed | Upper-left overlay with 37% shared energy; 12 by 10 floor; recipe rows; below-floor recovery centers tracked head at spawn and restores motor state |
+| Refrigerator fixture clearance | Passed | Actual stocked colliders tested against cabinet, shelves and closed door with Physics.ComputePenetration; corrected slot positions |
 | Windows build | Succeeded, **0 errors** | `Logs/Kitchen-WindowsBuild.log`; `Builds/Windows/Kitchen.exe` plus adjacent runtime files |
 | Windows player startup | Remained running after 15 seconds; no gameplay exception observed | `Logs/Kitchen-PC-Smoke.log`; test process closed after observation; not a manual full recipe run |
-| Quest APK | Succeeded, **0 errors**, 47,584,966 bytes | `Logs/Kitchen-QuestBuild.log`; `Builds/Quest/Kitchen.apk` |
-| APK inspection | ARM64, minimum API 29, target API 36; VR category and head tracking declared | Android build-tools `aapt` inspection of the final APK |
+| Quest APK | Succeeded, **0 errors**, 47,597,930 bytes | `Logs/Kitchen-QuestBuild.log`; `Builds/Quest/Kitchen.apk` |
+| APK inspection | ARM64, minimum API 29, target API 36; VR category and head tracking declared; v2 signature verifies | Android build-tools `aapt` and `apksigner` inspection of the final APK |
 | Quest 2 / Quest 3 hardware | **Pending** | No device was connected in `adb devices -l` |
 
-APK SHA-256: `160a8106e2847efe33b778b51284a62b5564ba919a5dc3a732e329253ec07b83`.
+APK SHA-256: `d9204fc2a3ed5ae5363ac2439019d6ef8ed32e8cf834541c09069c159c0975ac`.
 
 The Play Mode assertions cover all meat energy states and duplicate consumption, clean/dirty salad and ingredient accounting, refrigerator replenishment without duplicate or overlapping food, timer expiry/open-door pause, heat rates and pan requirements, foundation/occupancy rejection, actual trash trigger disposal, shared inventory ownership, and settlement after KitchenSession destruction.
 

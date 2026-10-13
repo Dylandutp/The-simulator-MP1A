@@ -58,14 +58,22 @@ namespace HouseSim.Kitchen
                 float heatSeconds = Mathf.Min(deltaTime, RemainingSeconds);
                 HeatFood(heatSeconds);
                 RemainingSeconds = Mathf.Max(0f, RemainingSeconds - heatSeconds);
+                // The physical timer pointer is the remaining-time display. Suppress feedback
+                // from this automatic movement while keeping deliberate user turns live.
+                resettingKnob = true;
+                try
+                {
+                    if (timerKnob) timerKnob.SetValue(RemainingSeconds);
+                }
+                finally
+                {
+                    resettingKnob = false;
+                }
                 if (RemainingSeconds <= 0f)
                 {
                     IsHeating = false;
                     if (heatLight) heatLight.enabled = false;
                     if (bell && bellClip) bell.PlayOneShot(bellClip, 0.6f);
-                    resettingKnob = true;
-                    if (timerKnob) timerKnob.SetValue(0f);
-                    resettingKnob = false;
                 }
             }
             RefreshLabel();

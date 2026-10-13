@@ -44,20 +44,20 @@ Do not reuse the earlier plan's 47-point sum. Add only the verified tier for eac
 
 - [ ] Starting KitchenEntry loads one shared XR Origin, one Kitchen room, and the intended shared inventory.
 - [ ] PC without a headset: complete every recipe, building, and disposal using WASD, mouse, E, C, and F; open/close both doors; increase/decrease both knobs; enter/leave the oven safely with held reach. Pick up a tipped pan, use R to level it, and resume cooking.
-- [ ] Quest 2, **left controller only**: complete every recipe and disposal; push the left thumbstick forward to aim a teleport and release to confirm, use side flicks to snap turn, and use grip to cancel a teleport. Check grip selection and same-hand trigger for door quick-toggle, knob step/wrap, and eating near the mouth.
+- [ ] Quest 2, **left controller only**: complete every recipe and disposal; push the left thumbstick forward to aim a teleport and release to confirm, use side flicks to snap turn, and use grip to cancel a teleport. Hold grip and physically drag each handle; turn both knobs clockwise and counterclockwise continuously. Trigger near the mouth eats held meals. Selection and trigger must not toggle doors or step knobs.
 - [ ] Quest 2, **right controller only**: repeat the entire loop using the right controller with the left controller inactive; include knife contact, placing food down before changing tools, and all build buttons.
-- [ ] Quest 3: repeat separate **left-only** and **right-only** runs; inspect world text, energy bar, frame rate, and comfort on hardware. These hardware runs remain pending until actually performed.
+- [ ] Quest 3: repeat separate **left-only** and **right-only** runs; inspect world text, the upper-left camera HUD, frame rate, and comfort on hardware. These hardware runs remain pending until actually performed.
 - [ ] Both-controller convenience: transfer ingredients between hands without duplicate inventory or energy; no recipe should require simultaneous two-hand input.
 - [ ] Near-Far interaction: after grabbing a distant item, bring it close or set it on a worktop before locomotion; releasing the item must restore thumbstick teleport/snap-turn actions.
 - [ ] Raw / cooked / burnt chicken changes energy by -15 / +30 / -20; lightly cooked / cooked / burnt steak changes it by +5 / +25 / -15.
 - [ ] Chicken boundaries are 20 and 40 effective seconds; steak boundaries are 8 and 18 effective seconds. Verify exactly at each boundary.
-- [ ] Opening the oven pauses heating/countdown; an empty oven does not heat remote food; held chicken does not heat; timer expiration stops heating.
-- [ ] Hob heat levels 1 / 2 / 3 use 0.5 / 1 / 2 cooking rates and increasingly red ring colors. A removed, held, or tilted pan stops cooking. Bare-hob steak does not cook.
+- [ ] Opening the oven pauses heating/countdown; an empty oven does not heat remote food; held chicken does not heat; timer expiration stops heating. The physical dial winds back in step with remaining seconds; no timer board is displayed.
+- [ ] Hob power is continuous from 0–100%; cooking rate is twice the normalized power (25% = 0.5, 50% = 1, 100% = 2). Ring redness and emission scale linearly. A removed, held, or tilted pan stops cooking. Bare-hob steak does not cook.
 - [ ] Clean salad gives +20 energy; salad with any dirty ingredient gives -15. Fewer than two produce kinds refuses mixing without losing bowl contents. Washing whole/chopped produce works for a cumulative 3 seconds.
 - [ ] Eating while at energy limits clamps to 0–100. An already consumed object cannot award energy or inventory again.
 - [ ] Repeated fridge door transitions do not duplicate stocked objects, delete food already taken, or place new items in the player's hand. All five raw ingredient types remain available.
 - [ ] Repeated startups vary ingredient-to-slot assignments; after taking an ingredient and leaving the door open, a 12–20 second delivery cycle refills an eligible empty slot without a door interaction.
-- [ ] Trash consumes only released food, adjusts claimed inventory once, and preserves tools. Dropped reusable tools recover as intended.
+- [ ] Trash consumes only released food, adjusts claimed inventory once, and preserves tools. Dropped reusable tools recover as intended. Falling below the room returns the player to the arrival point, ends active grabs, and clears falling velocity.
 - [ ] Successful food use changes `ServingsRemaining` from 1 to 0 and destroys that instance; chopping preserves exactly one serving in the replacement. Unloading the Kitchen clears destroyed physical-food claims without depending on Session destruction order, while shared Energy persists.
 - [ ] Foundation/occupancy rejection never spawns extra equipment; each successful grid placement produces a working appliance with independent state.
 - [ ] First-use tutorials appear once per session next to the correct mechanic and remain readable in the headset.

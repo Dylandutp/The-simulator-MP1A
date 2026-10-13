@@ -7,6 +7,8 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Object = UnityEngine.Object;
 
 namespace HouseSim.Kitchen.Editor
@@ -42,8 +44,6 @@ namespace HouseSim.Kitchen.Editor
         private static InputSettings originalInputSettings;
         private static InputSettings.EditorInputBehaviorInPlayMode originalEditorInputBehavior;
         private static InputSettings.BackgroundBehavior originalBackgroundBehavior;
-        private static KitchenDoor inputDoor;
-        private static KitchenKnob inputKnob;
         private static KitchenFood inputFood;
         private static CharacterController inputMotor;
         private static bool motorWasEnabled;
@@ -52,10 +52,19 @@ namespace HouseSim.Kitchen.Editor
         private static bool oldAutoDetectXR;
         private static int inputPhase, inputQueuedFrame;
         private static float inputQueuedTime;
+        private static readonly List<Action> InputSteps = new List<Action>();
+        private static Vector2 inputPointer;
         private static PlayerInventory retainedInventory;
         private static KitchenFood retainedFood;
         private static ResourceData retainedResource, retainedEnergyResource;
         private static int retainedBefore;
+        private static KitchenPlayerRecovery recovery;
+        private static KitchenEnergyHUD energyHud;
+        private static bool recoveryWasEnabled;
+        private static int recoveryBefore, recoveryQueuedFrame;
+        private static Vector3 recoveryPlayerPosition, recoveryCameraPosition;
+        private static Quaternion recoveryPlayerRotation, recoveryCameraRotation;
+        private static bool recoveryMotorWasEnabled;
 
         [Serializable]
         private sealed class Report
@@ -194,7 +203,11 @@ namespace HouseSim.Kitchen.Editor
                         break;
                     case 13: BeginDesktopInputCheck(); phase++; break;
                     case 14: if (AdvanceDesktopInputCheck()) phase++; break;
-                    case 15:
+                    case 15: BeginHudAndRecoveryCheck(); phase++; break;
+                    case 16:
+                        if (Time.frameCount < recoveryQueuedFrame + 2) return;
+                        FinishHudAndRecoveryCheck(); phase++; break;
+                    case 17:
                         retainedInventory = session.inventory;
                         retainedEnergyResource = session.energyResource;
                         retainedFood = Spawn("Steak");
@@ -204,13 +217,13 @@ namespace HouseSim.Kitchen.Editor
                         Object.Destroy(session);
                         phase++;
                         break;
-                    case 16:
+                    case 18:
                         if (session) return;
                         Assert(retainedInventory && retainedFood && retainedInventory.GetAmount(retainedResource) == retainedBefore + 1, "inventory/ledger-survives-kitchen-session-destroy");
                         Object.Destroy(retainedFood.gameObject);
                         phase++;
                         break;
-                    case 17:
+                    case 19:
                         if (retainedFood) return;
                         Assert(retainedInventory.GetAmount(retainedResource) == retainedBefore, "inventory/food-destruction-debits-retained-ledger-without-session");
                         retainedInventory.SetAmount(retainedEnergyResource, originalEnergy);
@@ -303,6 +316,7 @@ namespace HouseSim.Kitchen.Editor
             KitchenFridge fridge = Object.FindFirstObjectByType<KitchenFridge>();
             int stock = fridge.CountStock();
             Assert(stock == fridge.slots.Length, "fridge/all-configured-slots-stocked");
+            CheckStockClearance(fridge);
             int alive = Object.FindObjectsByType<KitchenFood>(FindObjectsSortMode.None).Count(food => !food.IsConsumed);
             fridge.Refill();
             fridge.Refill();
@@ -337,10 +351,40 @@ namespace HouseSim.Kitchen.Editor
             chicken.Discard();
         }
 
+        private static void CheckStockClearance(KitchenFridge fridge)
+        {
+            bool wasOpen = fridge.door.IsOpen;
+            fridge.door.SetOpenImmediately(false);
+            Physics.SyncTransforms();
+            // Include the closed door, shelves and cabinet walls. Food-to-food overlap is
+            // excluded here so this specifically guards the authored shelf/slot geometry.
+            Collider[] fixtures = fridge.GetComponentsInChildren<Collider>()
+                .Where(collider => collider.enabled && !collider.isTrigger && !collider.GetComponentInParent<KitchenFood>()).ToArray();
+            Assert(fixtures.Length > 0 && fixtures.Any(collider => collider.transform.IsChildOf(fridge.door.transform)), "fridge/clearance-check-includes-closed-door");
+            for (int slot = 0; slot < fridge.slots.Length; slot++)
+            {
+                KitchenFood food = fridge.slots[slot].GetComponentInChildren<KitchenFood>();
+                Assert(food != null, "fridge/clearance-stock-exists-slot-" + slot);
+                Collider[] foodColliders = food.GetComponentsInChildren<Collider>().Where(collider => collider.enabled && !collider.isTrigger).ToArray();
+                Assert(foodColliders.Length > 0, "fridge/clearance-stock-has-collider-slot-" + slot);
+                var penetrations = new List<string>();
+                foreach (Collider foodCollider in foodColliders)
+                foreach (Collider fixture in fixtures)
+                {
+                    if (Physics.ComputePenetration(foodCollider, foodCollider.transform.position, foodCollider.transform.rotation,
+                        fixture, fixture.transform.position, fixture.transform.rotation, out _, out float depth) && depth > .0001f)
+                        penetrations.Add(foodCollider.name + " vs " + fixture.name + " (" + depth.ToString("0.0000") + " m)");
+                }
+                Assert(penetrations.Count == 0, "fridge/stock-slot-" + slot + "-clears-closed-cabinet" + (penetrations.Count == 0 ? "" : ": " + string.Join("; ", penetrations)));
+            }
+            if (wasOpen) fridge.door.SetOpenImmediately(true);
+        }
+
         private static void CheckOven()
         {
             KitchenOven oven = Object.FindFirstObjectByType<KitchenOven>();
             Assert(oven && oven.chamber && oven.door && oven.timerKnob, "oven/configured");
+            CheckContinuousKnob(oven.timerKnob);
             KitchenFood chicken = Spawn("Chicken");
             KitchenFood steak = Spawn("Steak");
             chicken.transform.position = oven.chamber.position;
@@ -348,15 +392,20 @@ namespace HouseSim.Kitchen.Editor
             Physics.SyncTransforms();
             oven.door.SetOpenImmediately(false);
             oven.timerKnob.SetValue(20);
+            Quaternion timerBefore = oven.timerKnob.knobVisual.localRotation;
             chicken.SetDesktopHeld(true);
             oven.Tick(2);
             Assert(Near(chicken.CookSeconds, 0) && Near(oven.RemainingSeconds, 18), "oven/held-food-not-heated");
+            float twoSecondAngle = 2f / (oven.timerKnob.maxValue - oven.timerKnob.minValue) * oven.timerKnob.angleRange;
+            Assert(Near(oven.timerKnob.Value, 18) && Near(Quaternion.Angle(timerBefore, oven.timerKnob.knobVisual.localRotation), twoSecondAngle), "oven/countdown-turns-physical-knob-continuously");
             chicken.SetDesktopHeld(false);
             oven.Tick(3);
             Assert(Near(chicken.CookSeconds, 3) && Near(steak.CookSeconds, 0) && Near(oven.RemainingSeconds, 15), "oven/only-chicken-in-chamber-heats");
             oven.door.SetOpenImmediately(true);
+            Quaternion pausedRotation = oven.timerKnob.knobVisual.localRotation;
             oven.Tick(5);
             Assert(Near(chicken.CookSeconds, 3) && Near(oven.RemainingSeconds, 15) && !oven.IsHeating, "oven/open-door-pauses-heat-and-timer");
+            Assert(Quaternion.Angle(pausedRotation, oven.timerKnob.knobVisual.localRotation) < .02f, "oven/paused-countdown-preserves-knob-angle");
             oven.timerKnob.SetValue(30);
             Assert(Near(chicken.CookSeconds, 3) && Near(oven.RemainingSeconds, 30), "oven/retiming-preserves-cooking-progress");
             oven.door.SetOpenImmediately(false);
@@ -368,6 +417,33 @@ namespace HouseSim.Kitchen.Editor
             chicken.Discard();
             steak.Discard();
         }
+
+        private static void CheckContinuousKnob(KitchenKnob knob)
+        {
+            SetNormalized(knob, .4137f);
+            Assert(Mathf.Abs(knob.NormalizedValue - .4137f) < .0001f, "knob/fractional-value-is-not-quantized");
+            float initial = knob.Value;
+            Quaternion initialRotation = knob.knobVisual.localRotation;
+            knob.GetComponent<XRSimpleInteractable>().activated.Invoke(new ActivateEventArgs());
+            Assert(Near(knob.Value, initial) && Quaternion.Angle(initialRotation, knob.knobVisual.localRotation) < .02f, "knob/trigger-activation-does-not-jump");
+            Vector3 radial = Vector3.Cross(knob.WorldAxis, Vector3.up).normalized * .12f;
+            if (radial.sqrMagnitude < .001f) radial = Vector3.Cross(knob.WorldAxis, Vector3.right).normalized * .12f;
+            Vector3 center = knob.knobVisual.position;
+            knob.BeginDrag(center + radial);
+            knob.DragTo(center + radial);
+            Assert(Near(knob.Value, initial), "knob/begin-drag-preserves-current-angle");
+            knob.DragTo(center + Quaternion.AngleAxis(13.7f, knob.WorldAxis) * radial);
+            float clockwiseValue = Mathf.Lerp(knob.minValue, knob.maxValue, .4137f + 13.7f / knob.angleRange);
+            Assert(Near(knob.Value, clockwiseValue), "knob/clockwise-fractional-rotation-increases-value");
+            knob.DragTo(center + Quaternion.AngleAxis(4.2f, knob.WorldAxis) * radial);
+            float counterValue = Mathf.Lerp(knob.minValue, knob.maxValue, .4137f + 4.2f / knob.angleRange);
+            Assert(Near(knob.Value, counterValue) && knob.Value < clockwiseValue, "knob/counterclockwise-rotation-decreases-value");
+            knob.EndDrag();
+            Assert(Near(knob.Value, counterValue), "knob/release-preserves-fractional-setting");
+            knob.SetValue(knob.minValue);
+        }
+
+        private static void SetNormalized(KitchenKnob knob, float fraction) => knob.SetValue(Mathf.Lerp(knob.minValue, knob.maxValue, fraction));
 
         private static void CheckHob()
         {
@@ -383,12 +459,14 @@ namespace HouseSim.Kitchen.Editor
             KitchenFood steak = Spawn("Steak");
             steak.transform.position = pan.cookingSurface.position;
             Physics.SyncTransforms();
-            hob.powerKnob.SetValue(1); hob.Tick(4);
-            Assert(Near(steak.CookSeconds, 2), "hob/power-one-half-speed");
-            hob.powerKnob.SetValue(2); hob.Tick(4);
-            Assert(Near(steak.CookSeconds, 6), "hob/power-two-normal-speed");
-            hob.powerKnob.SetValue(3); hob.Tick(1);
-            Assert(Near(steak.CookSeconds, 8) && steak.State == FoodState.Good, "hob/power-three-double-speed-and-good-steak");
+            SetNormalized(hob.powerKnob, .25f); hob.Tick(4);
+            Assert(Near(steak.CookSeconds, 2), "hob/quarter-power-half-speed");
+            SetNormalized(hob.powerKnob, .5f); hob.Tick(4);
+            Assert(Near(steak.CookSeconds, 6), "hob/half-power-normal-speed");
+            SetNormalized(hob.powerKnob, .625f); hob.Tick(.8f);
+            Assert(Near(steak.CookSeconds, 7) && Mathf.Abs(hob.powerKnob.NormalizedValue - .625f) < .0001f, "hob/fractional-power-has-proportional-unquantized-heat");
+            SetNormalized(hob.powerKnob, 1f); hob.Tick(.5f);
+            Assert(Near(steak.CookSeconds, 8) && steak.State == FoodState.Good, "hob/full-power-double-speed-and-good-steak");
             steak.SetDesktopHeld(true); hob.Tick(10);
             Assert(Near(steak.CookSeconds, 8), "hob/held-steak-not-heated");
             steak.SetDesktopHeld(false);
@@ -404,7 +482,7 @@ namespace HouseSim.Kitchen.Editor
             Physics.SyncTransforms();
             hob.powerKnob.SetValue(0); hob.Tick(10);
             Assert(Near(steak.CookSeconds, 8), "hob/off-switch-stops-heating");
-            hob.powerKnob.SetValue(3); hob.Tick(5);
+            SetNormalized(hob.powerKnob, 1f); hob.Tick(5);
             Assert(Near(steak.CookSeconds, 18) && steak.State == FoodState.Burnt, "hob/continued-cooking-burns-steak");
             hob.powerKnob.SetValue(0);
             pan.transform.SetPositionAndRotation(oldPosition, oldRotation);
@@ -432,7 +510,7 @@ namespace HouseSim.Kitchen.Editor
             steakBody.linearVelocity = Vector3.zero;
             steakBody.angularVelocity = Vector3.zero;
             Physics.SyncTransforms();
-            gravityHob.powerKnob.SetValue(2);
+            SetNormalized(gravityHob.powerKnob, .5f);
             gravityHob.enabled = true;
             gravityStarted = Time.time;
         }
@@ -484,58 +562,215 @@ namespace HouseSim.Kitchen.Editor
             testMouse = InputSystem.AddDevice<Mouse>("KitchenSmokeMouse");
             testKeyboard.MakeCurrent();
             testMouse.MakeCurrent();
-            inputDoor = Object.FindFirstObjectByType<KitchenFridge>().door;
-            inputDoor.SetOpenImmediately(false);
-            Collider doorPanel = inputDoor.GetComponentsInChildren<Collider>().Where(collider => !collider.isTrigger).OrderByDescending(collider => collider.bounds.size.sqrMagnitude).First();
-            AimAt(doorPanel.bounds.center, -inputDoor.transform.forward);
-            InputSystem.QueueStateEvent(testMouse, new MouseState());
-            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.E));
+            desktop.ResetMotion();
+            InputSteps.Clear();
+            AddHingePointerCheck(Object.FindFirstObjectByType<KitchenFridge>().door, "fridge-door");
+            AddHingePointerCheck(Object.FindFirstObjectByType<KitchenOven>().door, "oven-door");
+            AddHingePointerCheck(Object.FindFirstObjectByType<KitchenToggle>(), "tap-lever");
+            AddKnobPointerCheck(Object.FindFirstObjectByType<KitchenOven>().timerKnob, "oven-timer");
+            AddKnobPointerCheck(Object.FindFirstObjectByType<KitchenHob>().powerKnob, "hob-power");
+            InputSteps.Add(() =>
+            {
+                inputFood = Spawn("Steak");
+                foreach (var respawn in inputFood.GetComponents<KitchenRespawnTool>()) respawn.enabled = false;
+                inputFood.transform.position = new Vector3(0, 1.65f, 0);
+                Physics.SyncTransforms();
+                Collider foodCollider = inputFood.GetComponent<Collider>();
+                AimAt(foodCollider.bounds.center, Vector3.back);
+                QueuePointer(desktop.viewCamera.WorldToScreenPoint(foodCollider.bounds.center), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(inputFood && desktop.HeldObject == inputFood.gameObject && inputFood.IsHeld && inputFood.IsClaimed, "desktop/pointer-left-click-grabs-and-claims-via-update");
+                SetEnergy(50);
+                QueuePointer(inputPointer, false);
+                InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.F));
+            });
+            InputSteps.Add(() => Assert(!inputFood && session.Energy == 55, "desktop/keyboard-F-consumes-held-food-via-update"));
             inputPhase = 0;
+            InputSteps[0]();
             MarkInputQueued();
         }
 
         private static bool AdvanceDesktopInputCheck()
         {
             if (Time.frameCount < inputQueuedFrame + 2 || Time.time - inputQueuedTime < 0.25f) return false;
-            if (inputPhase == 0)
+            if (++inputPhase >= InputSteps.Count)
             {
-                Assert(inputDoor.IsOpen, "desktop/keyboard-E-opens-door-via-update");
-                InputSystem.QueueStateEvent(testKeyboard, new KeyboardState());
-                inputKnob = Object.FindFirstObjectByType<KitchenOven>().timerKnob;
-                inputKnob.SetValue(0);
-                Collider dial = inputKnob.GetComponentsInChildren<Collider>().First(collider => !collider.isTrigger);
-                AimAt(dial.bounds.center, -inputKnob.transform.forward);
-                InputSystem.QueueStateEvent(testMouse, new MouseState { scroll = new Vector2(0, 120f) });
-                inputPhase++;
-            }
-            else if (inputPhase == 1)
-            {
-                Assert(Near(inputKnob.Value, inputKnob.step), "desktop/mouse-wheel-adjusts-knob-via-update");
-                InputSystem.QueueStateEvent(testMouse, new MouseState());
-                inputFood = Spawn("Steak");
-                inputFood.transform.position = new Vector3(50f, 3f, 50f);
-                Physics.SyncTransforms();
-                Collider foodCollider = inputFood.GetComponent<Collider>();
-                AimAt(foodCollider.bounds.center, Vector3.back);
-                InputSystem.QueueStateEvent(testMouse, new MouseState().WithButton(MouseButton.Left));
-                inputPhase++;
-            }
-            else if (inputPhase == 2)
-            {
-                Assert(inputFood && desktop.HeldObject == inputFood.gameObject && inputFood.IsHeld && inputFood.IsClaimed, "desktop/left-click-grabs-and-claims-via-update");
-                SetEnergy(50);
-                InputSystem.QueueStateEvent(testMouse, new MouseState());
-                InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.F));
-                inputPhase++;
-            }
-            else
-            {
-                Assert(!inputFood && session.Energy == 55, "desktop/keyboard-F-consumes-held-food-via-update");
                 CleanupDesktopInput();
                 return true;
             }
+            InputSteps[inputPhase]();
             MarkInputQueued();
             return false;
+        }
+
+        private static void AddHingePointerCheck(Component control, string name)
+        {
+            KitchenDoor door = control as KitchenDoor;
+            KitchenToggle tap = control as KitchenToggle;
+            Transform pivot = door ? door.Pivot : tap.Pivot;
+            Func<float> angle = () => door ? door.Angle : tap.Angle;
+            Func<Vector3> axis = () => door ? door.WorldAxis : tap.WorldAxis;
+            float closed = door ? door.closedAngle : tap.closedAngle;
+            float sign = Mathf.Sign((door ? door.openAngle : tap.openAngle) - closed);
+            Vector3 localHit = default;
+            float released = 0;
+            string prefix = "desktop/" + name + "/";
+            InputSteps.Add(() =>
+            {
+                if (door) door.SetOpenImmediately(false); else tap.SetValue(false);
+                control.GetComponent<XRSimpleInteractable>().activated.Invoke(new ActivateEventArgs());
+                Assert(Near(angle(), closed), prefix + "XR-trigger-does-not-toggle");
+                RaycastHit hit = AimAtControlHandle(control);
+                localHit = pivot.InverseTransformPoint(hit.point);
+                QueuePointer(desktop.viewCamera.WorldToScreenPoint(hit.point), false, 120f);
+                InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.E));
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(angle(), closed), prefix + "E-and-wheel-do-not-toggle");
+                QueuePointer(inputPointer, true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(desktop.IsDraggingControl && Near(angle(), closed), prefix + "pointer-press-begins-drag-without-jump");
+                QueueHingePointer(pivot, localHit, axis(), sign * 10f);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Mathf.Abs(angle() - (closed + sign * 10f)) < .8f, prefix + "pointer-drag-follows-handle-arc");
+                QueueHingePointer(pivot, localHit, axis(), sign * 7.5f);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Mathf.Abs(angle() - (closed + sign * 17.5f)) < 1f && (door ? door.IsOpen : tap.Value), prefix + "continuous-partial-opening-activates");
+                QueueHingePointer(pivot, localHit, axis(), -sign * 5.3f);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Mathf.Abs(angle() - (closed + sign * 12.2f)) < 1.2f, prefix + "reverse-pointer-drag-closes-partially");
+                released = angle();
+                QueuePointer(inputPointer, false);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(!desktop.IsDraggingControl && Near(angle(), released), prefix + "pointer-release-preserves-position");
+                if (door) door.SetOpenImmediately(false); else tap.SetValue(false);
+            });
+        }
+
+        private static void AddKnobPointerCheck(KitchenKnob knob, string name)
+        {
+            Vector2 center = default;
+            float radius = 0, initial = 0, released = 0;
+            float range = knob.maxValue - knob.minValue;
+            string prefix = "desktop/" + name + "/";
+            Func<float, Vector2> point = degrees => center + new Vector2(Mathf.Cos(degrees * Mathf.Deg2Rad), -Mathf.Sin(degrees * Mathf.Deg2Rad)) * radius;
+            Func<float, float> expected = degrees => initial + degrees / knob.angleRange * range;
+            InputSteps.Add(() =>
+            {
+                SetNormalized(knob, .4137f);
+                initial = knob.Value;
+                AimAt(knob.Pivot.position, knob.WorldAxis);
+                center = desktop.viewCamera.WorldToScreenPoint(knob.Pivot.position);
+                radius = Vector2.Distance(center, desktop.viewCamera.WorldToScreenPoint(knob.Pivot.position + desktop.viewCamera.transform.right * .045f));
+                Assert(radius >= 6 && PointerHitsControl(knob, point(0), out _), prefix + "pointer-hits-off-center-dial-collider");
+                QueuePointer(point(0), false, 120f);
+                InputSystem.QueueStateEvent(testKeyboard, new KeyboardState(Key.E));
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, initial), prefix + "E-and-wheel-do-not-change-setting");
+                QueuePointer(point(0), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(desktop.IsDraggingControl && Near(knob.Value, initial), prefix + "pointer-press-does-not-jump");
+                QueuePointer(point(11.3f), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, expected(11.3f)), prefix + "clockwise-pointer-circle-increases-fractionally");
+                QueuePointer(point(29.2f), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, expected(29.2f)), prefix + "continued-pointer-circle-is-unquantized");
+                QueuePointer(point(20.5f), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, expected(20.5f)), prefix + "counterclockwise-pointer-circle-decreases");
+                released = knob.Value;
+                QueuePointer(center, true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, released), prefix + "pointer-crossing-center-does-not-jump");
+                QueuePointer(point(180), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, released), prefix + "pointer-leaving-center-reanchors-without-jump");
+                QueuePointer(point(184.7f), true);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, expected(25.2f)), prefix + "reanchored-pointer-circle-resumes-continuously");
+                released = knob.Value;
+                QueuePointer(inputPointer, false);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(!desktop.IsDraggingControl && Near(knob.Value, released), prefix + "pointer-release-preserves-fractional-value");
+                QueuePointer(point(210), false);
+            });
+            InputSteps.Add(() =>
+            {
+                Assert(Near(knob.Value, released), prefix + "pointer-move-without-hold-does-not-turn-dial");
+                knob.SetValue(knob.minValue);
+            });
+        }
+
+        private static RaycastHit AimAtControlHandle(Component control)
+        {
+            var interactable = control.GetComponent<XRSimpleInteractable>();
+            Collider handle = interactable.colliders.First(collider => collider && collider.enabled && !collider.isTrigger);
+            Vector3 backward = -control.transform.forward;
+            foreach (Vector3 approach in new[] { backward + control.transform.right * .4f + Vector3.up * .25f, backward, backward - control.transform.right * .4f + Vector3.up * .25f, backward + Vector3.up })
+            {
+                AimAt(handle.bounds.center, approach);
+                Vector2 pointer = desktop.viewCamera.WorldToScreenPoint(handle.bounds.center);
+                if (PointerHitsControl(control, pointer, out RaycastHit hit)) return hit;
+            }
+            throw new InvalidOperationException("Cannot point at allowed handle collider: " + control.name);
+        }
+
+        private static bool PointerHitsControl(Component control, Vector2 pointer, out RaycastHit hit)
+        {
+            Physics.SyncTransforms();
+            Ray ray = desktop.viewCamera.ScreenPointToRay(pointer);
+            hit = Physics.RaycastAll(ray, desktop.interactionDistance, desktop.interactionMask, QueryTriggerInteraction.Ignore)
+                .Where(candidate => !candidate.collider.transform.IsChildOf(desktop.playerRoot)).OrderBy(candidate => candidate.distance).FirstOrDefault();
+            return hit.collider && control.GetComponent<XRSimpleInteractable>().colliders.Contains(hit.collider);
+        }
+
+        private static void QueueHingePointer(Transform pivot, Vector3 localHit, Vector3 worldAxis, float degrees)
+        {
+            Vector3 radius = pivot.TransformPoint(localHit) - pivot.position;
+            Vector2 before = desktop.viewCamera.WorldToScreenPoint(pivot.position + radius);
+            Vector2 after = desktop.viewCamera.WorldToScreenPoint(pivot.position + Quaternion.AngleAxis(degrees, worldAxis) * radius);
+            QueuePointer(inputPointer + after - before, true);
+        }
+
+        private static void QueuePointer(Vector2 position, bool held, float scroll = 0)
+        {
+            var state = new MouseState { position = position, delta = position - inputPointer, scroll = new Vector2(0, scroll) };
+            if (held) state = state.WithButton(MouseButton.Left);
+            InputSystem.QueueStateEvent(testMouse, state);
+            InputSystem.QueueStateEvent(testKeyboard, new KeyboardState());
+            inputPointer = position;
         }
 
         private static void AimAt(Vector3 target, Vector3 approach)
@@ -557,10 +792,11 @@ namespace HouseSim.Kitchen.Editor
         {
             if (desktop)
             {
-                desktop.Release();
+                desktop.ResetMotion();
                 desktop.autoDetectXR = oldAutoDetectXR;
                 desktop.playerRoot.SetPositionAndRotation(oldPlayerPosition, oldPlayerRotation);
                 desktop.viewCamera.transform.SetPositionAndRotation(oldCameraPosition, oldCameraRotation);
+                desktop.ResetMotion();
                 if (inputMotor) inputMotor.enabled = motorWasEnabled;
             }
             if (testKeyboard != null) { InputSystem.RemoveDevice(testKeyboard); testKeyboard = null; }
@@ -593,6 +829,61 @@ namespace HouseSim.Kitchen.Editor
             grid.Place(0);
             Assert(grid.transform.childCount == children, "grid/cannot-stack-equipment");
             foreach (KitchenHob hob in grid.GetComponentsInChildren<KitchenHob>()) Assert(hob.pan != null, "grid/cloned-hob-has-own-pan");
+        }
+
+        private static void BeginHudAndRecoveryCheck()
+        {
+            energyHud = Object.FindFirstObjectByType<KitchenEnergyHUD>();
+            recovery = Object.FindFirstObjectByType<KitchenPlayerRecovery>();
+            Assert(energyHud && energyHud.DisplayCanvas && energyHud.session == session && energyHud.viewCamera, "hud/shared-energy-display-configured");
+            var panel = energyHud.DisplayCanvas.transform.Find("Energy panel") as RectTransform;
+            Assert(panel && energyHud.DisplayCanvas.renderMode == RenderMode.ScreenSpaceOverlay && panel.anchorMin == new Vector2(0, 1) && panel.anchorMax == new Vector2(0, 1)
+                && panel.anchoredPosition.x > 0 && panel.anchoredPosition.y < 0, "hud/desktop-energy-panel-anchored-upper-left");
+            Assert(!session.energyText, "hud/energy-is-not-bound-to-stationary-world-text");
+            Transform floor = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).FirstOrDefault(item => item.name == "Kitchen floor");
+            Assert(floor && Vector3.Distance(floor.localScale, new Vector3(12, .2f, 10)) < .01f, "scene/expanded-twelve-by-ten-floor");
+            foreach (string recipe in new[] { "Recipe chicken", "Recipe steak", "Recipe salad" })
+                Assert(Object.FindObjectsByType<TextMesh>(FindObjectsSortMode.None).Any(text => text.name == recipe && !string.IsNullOrWhiteSpace(text.text)), "scene/recipe-row-" + recipe);
+            SetEnergy(37);
+            Assert(recovery && recovery.origin && recovery.spawn && recovery.origin.Camera, "recovery/player-rig-and-spawn-configured");
+            recoveryWasEnabled = recovery.enabled;
+            recovery.enabled = true;
+            Transform player = recovery.origin.transform;
+            Transform eye = recovery.origin.Camera.transform;
+            recoveryPlayerPosition = player.position;
+            recoveryPlayerRotation = player.rotation;
+            recoveryCameraPosition = eye.position;
+            recoveryCameraRotation = eye.rotation;
+            var motor = recovery.origin.GetComponent<CharacterController>();
+            recoveryMotorWasEnabled = motor && motor.enabled;
+            if (motor) motor.enabled = false;
+            // Give the camera a room-scale horizontal offset to ensure recovery aligns the
+            // user's head above the spawn, not only the XROrigin's transform.
+            eye.position += new Vector3(.28f, 0, -.19f);
+            player.position = new Vector3(recovery.spawn.position.x + 2, recovery.belowFloor - 2, recovery.spawn.position.z - 2);
+            recoveryBefore = recovery.RecoveryCount;
+            if (motor) motor.enabled = recoveryMotorWasEnabled;
+            Physics.SyncTransforms();
+            recoveryQueuedFrame = Time.frameCount;
+        }
+
+        private static void FinishHudAndRecoveryCheck()
+        {
+            Assert(Near(energyHud.DisplayedFraction, .37f), "hud/shared-energy-change-updates-visible-fill");
+            Transform player = recovery.origin.transform;
+            Transform eye = recovery.origin.Camera.transform;
+            var motor = recovery.origin.GetComponent<CharacterController>();
+            Assert(recovery.RecoveryCount == recoveryBefore + 1, "recovery/below-floor-update-recovers-once");
+            Assert(Vector2.Distance(new Vector2(eye.position.x, eye.position.z), new Vector2(recovery.spawn.position.x, recovery.spawn.position.z)) < .05f
+                && Mathf.Abs(player.position.y - recovery.spawn.position.y) < .12f, "recovery/head-centered-over-spawn-and-rig-above-floor");
+            Assert(!motor || motor.enabled == recoveryMotorWasEnabled, "recovery/character-controller-enabled-state-restored");
+            if (motor) motor.enabled = false;
+            player.SetPositionAndRotation(recoveryPlayerPosition, recoveryPlayerRotation);
+            eye.SetPositionAndRotation(recoveryCameraPosition, recoveryCameraRotation);
+            if (motor) motor.enabled = recoveryMotorWasEnabled;
+            recovery.enabled = recoveryWasEnabled;
+            recovery.origin.GetComponent<KitchenDesktopController>()?.ResetMotion();
+            Physics.SyncTransforms();
         }
 
         private static void BeginTrashCheck()

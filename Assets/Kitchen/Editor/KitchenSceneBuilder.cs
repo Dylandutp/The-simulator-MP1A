@@ -56,22 +56,22 @@ namespace HouseSim.Kitchen.Editor
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var room = new GameObject("Kitchen Room");
             CreateRoom(room.transform);
-            Instance(fridgePrefab,room.transform,new Vector3(-2.85f,0,2.55f));
-            Instance(sinkPrefab,room.transform,new Vector3(-1.2f,0,2.55f));
-            Instance(hobPrefab,room.transform,new Vector3(.45f,0,2.55f));
-            Instance(ovenPrefab,room.transform,new Vector3(2.15f,0,2.55f));
-            Instance(prepPrefab,room.transform,new Vector3(.1f,0,.15f));
-            Instance(binPrefab,room.transform,new Vector3(2.25f,0,.35f));
+            Instance(fridgePrefab,room.transform,new Vector3(-3.7f,0,3.8f));
+            Instance(sinkPrefab,room.transform,new Vector3(-1.8f,0,3.8f));
+            Instance(hobPrefab,room.transform,new Vector3(.25f,0,3.8f));
+            Instance(ovenPrefab,room.transform,new Vector3(2.25f,0,3.8f));
+            Instance(prepPrefab,room.transform,new Vector3(.1f,0,.3f));
+            Instance(binPrefab,room.transform,new Vector3(2.4f,0,.6f));
             var sessionObject = new GameObject("Kitchen Shared Services");
             sessionObject.transform.SetParent(room.transform);
             var session=sessionObject.AddComponent<KitchenSession>();
             session.energyResource=Resource("Energy","Energy");
-            session.visibleResources=resources.ToArray();
-            session.initialEnergy=70;session.recoveryAnchor=Empty("Lost food recovery",room.transform,new Vector3(-.55f,1.4f,.15f));
+            session.visibleResources=resources.FindAll(resource => resource != session.energyResource).ToArray();
+            session.initialEnergy=70;session.recoveryAnchor=Empty("Lost food recovery",room.transform,new Vector3(-.55f,1.4f,.3f));
             CreateBoards(room.transform,session);
             var runtime=room.AddComponent<KitchenRuntimeSetup>();
             runtime.session=session;
-            runtime.spawn=Empty("Player arrival",room.transform,new Vector3(.25f,0,-1.8f));
+            runtime.spawn=Empty("Player arrival",room.transform,new Vector3(.25f,0,-2.4f));
             CreateGrid(room.transform,foundationPrefab,fridgePrefab,hobPrefab,ovenPrefab);
             RenderSettings.ambientMode=AmbientMode.Flat;
             RenderSettings.ambientLight=new Color(.68f,.72f,.75f);
@@ -195,13 +195,15 @@ namespace HouseSim.Kitchen.Editor
             for(int i=0;i<4;i++)Box("Shelf "+i,root.transform,new Vector3(0,.12f+i*.52f,0),new Vector3(1.02f,.045f,.86f),white);
             var pivot=Empty("Fridge hinge",root.transform,new Vector3(-.535f,0,-.47f));
             Box("Fridge door",pivot,new Vector3(.54f,1.06f,0),new Vector3(1.09f,2.07f,.085f),green);
-            Box("Door brass handle",pivot,new Vector3(.94f,1.13f,-.07f),new Vector3(.035f,.43f,.055f),brass);
+            var handle=Box("Door brass handle",pivot,new Vector3(.94f,1.13f,-.09f),new Vector3(.055f,.43f,.085f),brass);
             var door=pivot.gameObject.AddComponent<KitchenDoor>();door.pivot=pivot;door.openAngle=105;
+            door.GetComponent<XRSimpleInteractable>().colliders.Clear();
+            door.GetComponent<XRSimpleInteractable>().colliders.Add(handle.GetComponent<Collider>());
             Text("Fridge name","F R E S H",pivot,new Vector3(.52f,1.76f,-.05f),.034f);
             var fridge=root.AddComponent<KitchenFridge>();fridge.door=door;
             var slots=new List<Transform>();var prefabs=new List<GameObject>();
             FoodKind[] order={FoodKind.Chicken,FoodKind.Steak,FoodKind.Tomato,FoodKind.Lettuce,FoodKind.Apple,FoodKind.Tomato};
-            for(int i=0;i<6;i++) {slots.Add(Empty("Stock slot "+i,root.transform,new Vector3(i%2==0?-.255f:.255f,.665f+i/2*.52f,-.1f)));prefabs.Add(foods[order[i]].prefab);}
+            for(int i=0;i<6;i++) {slots.Add(Empty("Stock slot "+i,root.transform,new Vector3(i%2==0?-.22f:.22f,.69f+i/2*.52f,-.1f)));prefabs.Add(foods[order[i]].prefab);}
             fridge.slots=slots.ToArray();fridge.foodPrefabs=prefabs.ToArray();
             fridge.label=Screen("Stock display",root.transform,new Vector3(0,2.3f,-.35f),1.1f,.30f);
             Hint(root.transform,"fridge","Pull the handle to open. Take an ingredient.\nOpening or closing restocks empty spaces.",new Vector3(0,1.65f,-.64f));
@@ -221,12 +223,13 @@ namespace HouseSim.Kitchen.Editor
             var pivot=Empty("Oven hinge",root.transform,new Vector3(0,.55f,-.5f));
             Box("Door frame",pivot,new Vector3(0,.32f,0),new Vector3(1.11f,.65f,.065f),metal);
             Box("Door glass",pivot,new Vector3(0,.30f,-.04f),new Vector3(.88f,.46f,.02f),glass);
-            Box("Oven handle",pivot,new Vector3(0,.56f,-.095f),new Vector3(.76f,.035f,.045f),brass);
+            var handle=Box("Oven handle",pivot,new Vector3(0,.56f,-.105f),new Vector3(.76f,.055f,.075f),brass);
             var door=pivot.gameObject.AddComponent<KitchenDoor>();door.pivot=pivot;door.localAxis=Vector3.right;door.openAngle=-90;
-            var knob=Knob(root.transform,new Vector3(.32f,1.35f,-.53f),"TIMER",60,5," s");
+            door.GetComponent<XRSimpleInteractable>().colliders.Clear();
+            door.GetComponent<XRSimpleInteractable>().colliders.Add(handle.GetComponent<Collider>());
+            var knob=Knob(root.transform,new Vector3(.32f,1.35f,-.53f),"Oven",60,0,"s");
             var oven=root.AddComponent<KitchenOven>();oven.door=door;oven.timerKnob=knob;
             oven.chamber=Empty("Cooking volume",root.transform,new Vector3(0,.88f,0));oven.chamberHalfExtents=new Vector3(.48f,.21f,.34f);
-            oven.label=Screen("Oven status",root.transform,new Vector3(0,1.87f,.3f),1.15f,.38f);
             var lamp=new GameObject("Oven lamp").AddComponent<Light>();lamp.transform.SetParent(root.transform,false);lamp.transform.localPosition=new Vector3(0,1.06f,.15f);lamp.type=LightType.Point;lamp.range=1.3f;lamp.intensity=2;lamp.color=new Color(1,.47f,.12f);oven.heatLight=lamp;
             Text("Chicken recipe","ROAST\nCHICKEN",root.transform,new Vector3(-.24f,1.42f,-.495f),.016f);
             Hint(root.transform,"oven","Place chicken on the rack. Close the door.\nTurn the timer. Opening pauses cooking.",new Vector3(0,1.5f,-.65f));
@@ -239,12 +242,12 @@ namespace HouseSim.Kitchen.Editor
             Box("Black glass hob",root.transform,new Vector3(0,.98f,0),new Vector3(1.12f,.045f,.78f),dark);
             var rings=new List<Renderer>();
             for(int i=0;i<3;i++)rings.Add(Torus("Induction coil "+i,root.transform,new Vector3(-.13f,1.006f,.04f),.18f+i*.038f,.008f,Mat("Heat ring",new Color(.14f,.035f,.02f),.3f,true)).GetComponent<Renderer>());
-            var knob=Knob(root.transform,new Vector3(.36f,.91f,-.49f),"HEAT",3,1,"");
+            var knob=Knob(root.transform,new Vector3(.36f,.85f,-.51f),"Heat",100,0,"%");
             var hob=root.AddComponent<KitchenHob>();hob.powerKnob=knob;hob.ringRenderers=rings.ToArray();hob.burner=Empty("Burner",root.transform,new Vector3(-.13f,1.025f,.04f));
             var pan=CreatePan();pan.transform.SetParent(root.transform,false);pan.transform.localPosition=new Vector3(-.13f,1.027f,.04f);hob.pan=pan.GetComponent<KitchenPan>();
             hob.label=Screen("Hob status",root.transform,new Vector3(0,1.53f,.35f),1.22f,.34f);
 
-            Hint(root.transform,"hob","Turn the knob: 0 is off, 3 is high.\nA brighter red ring cooks steak faster.",new Vector3(.28f,1.2f,-.6f));
+            Hint(root.transform,"hob","Hold and turn: 0% is off, 100% is maximum.\nA brighter red ring cooks steak faster.",new Vector3(.28f,1.2f,-.6f));
             Hint(root.transform,"pan","Rest the pan on the ring, then drop in steak.\nYou can cook with one hand; no need to hold the pan.",new Vector3(-.2f,1.36f,-.3f));
             return root;
         }
@@ -276,14 +279,19 @@ namespace HouseSim.Kitchen.Editor
             Box("Faucet upright",root.transform,new Vector3(.12f,1.24f,.3f),new Vector3(.045f,.48f,.045f),metal);
             Box("Faucet neck",root.transform,new Vector3(.12f,1.47f,.12f),new Vector3(.045f,.045f,.39f),metal);
             var water=Primitive("Running water",PrimitiveType.Cylinder,root.transform,new Vector3(.12f,1.11f,-.05f),new Vector3(.032f,.35f,.032f),FlowMat(),false);
-            var button=Box("Tap lever",root.transform,new Vector3(.4f,1.095f,.25f),new Vector3(.12f,.08f,.16f),brass);
-            var toggle=button.AddComponent<KitchenToggle>();toggle.activeVisual=water;toggle.labelPrefix="TAP";
-            toggle.label=Text("Tap label","TAP",root.transform,new Vector3(.4f,1.17f,.25f),.013f);
+            Box("Tap base",root.transform,new Vector3(.4f,1.03f,.25f),new Vector3(.13f,.12f,.13f),metal);
+            var tapPivot=Empty("Tap hinge",root.transform,new Vector3(.4f,1.095f,.25f));
+            var handle=Box("Tap lever",tapPivot,new Vector3(0,0,-.15f),new Vector3(.065f,.055f,.30f),brass);
+            var toggle=tapPivot.gameObject.AddComponent<KitchenToggle>();toggle.activeVisual=water;toggle.labelPrefix="TAP";
+            toggle.pivot=tapPivot;toggle.localAxis=Vector3.right;toggle.openAngle=65;
+            toggle.GetComponent<XRSimpleInteractable>().colliders.Clear();
+            toggle.GetComponent<XRSimpleInteractable>().colliders.Add(handle.GetComponent<Collider>());
+            toggle.label=Text("Tap label","TAP",root.transform,new Vector3(.4f,1.34f,.3f),.013f);
             var flow=water.AddComponent<KitchenUVFlow>();flow.target=water.GetComponent<Renderer>();flow.source=toggle;flow.speed=.8f;flow.generateStripes=false;flow.direction=Vector2.down;
             var zoneObj=new GameObject("Water washing area");zoneObj.transform.SetParent(root.transform,false);zoneObj.transform.localPosition=new Vector3(0,1.05f,-.03f);
             var zone=zoneObj.AddComponent<BoxCollider>();zone.isTrigger=true;zone.size=new Vector3(.89f,.55f,.59f);
             var wash=zoneObj.AddComponent<KitchenWashZone>();wash.faucet=toggle;wash.label=Screen("Wash progress",root.transform,new Vector3(0,1.7f,.32f),1.18f,.3f);
-            Hint(root.transform,"washing","Tap the lever. Hold produce in the water for 3 s.\nUnwashed ingredients make a dirty salad.",new Vector3(0,1.3f,-.65f));
+            Hint(root.transform,"washing","Hold and lift the lever. Wash produce for 3 s.\nLower the lever to stop the water.",new Vector3(0,1.3f,-.65f));
             return root;
         }
         static GameObject CreatePrep()
@@ -327,22 +335,22 @@ namespace HouseSim.Kitchen.Editor
         }
         static void CreateRoom(Transform parent)
         {
-            var floor=Box("Kitchen floor",parent,new Vector3(0,-.1f,0),new Vector3(8,.2f,7.4f),Mat("Floor grout",new Color(.47f,.44f,.36f)));
+            var floor=Box("Kitchen floor",parent,new Vector3(0,-.1f,0),new Vector3(12,.2f,10),Mat("Floor grout",new Color(.47f,.44f,.36f)));
             var teleport=floor.AddComponent<TeleportationArea>();teleport.interactionLayers=1 << 31;
-            for(int x=0;x<8;x++) for(int z=0;z<7;z++)
-                Box("Floor tile",parent,new Vector3(x-3.5f,.003f,z-3f),new Vector3(.975f,.012f,.975f),(x+z)%2==0?Mat("Cream tile",new Color(.80f,.77f,.65f)):Mat("Sand tile",new Color(.72f,.68f,.55f)),false);
-            Box("Back wall",parent,new Vector3(0,1.6f,3.65f),new Vector3(8,3.2f,.18f),cream);
-            Box("Ceiling",parent,new Vector3(0,3.25f,0),new Vector3(8,.1f,7.4f),cream).GetComponent<Renderer>().shadowCastingMode=ShadowCastingMode.Off;
-            Box("Left wall",parent,new Vector3(-4,1.6f,0),new Vector3(.18f,3.2f,7.4f),cream);
-            Box("Right wall",parent,new Vector3(4,1.6f,0),new Vector3(.18f,3.2f,7.4f),cream);
-            Box("Back splash",parent,new Vector3(0,1.2f,3.545f),new Vector3(7.7f,.8f,.04f),Mat("Sage tile",new Color(.49f,.63f,.53f)));
-            for(int x=0;x<16;x++)Box("Tile grout",parent,new Vector3(-3.75f+x*.5f,1.2f,3.517f),new Vector3(.012f,.8f,.008f),white,false);
-            for(int y=0;y<3;y++)Box("Tile grout",parent,new Vector3(0,.95f+y*.25f,3.515f),new Vector3(7.7f,.012f,.008f),white,false);
-            Box("Back skirting",parent,new Vector3(0,.10f,3.54f),new Vector3(7.8f,.2f,.05f),green);
-            Box("Right skirting",parent,new Vector3(3.88f,.10f,0),new Vector3(.05f,.2f,7.3f),green);
-            Box("Left skirting",parent,new Vector3(-3.88f,.10f,0),new Vector3(.05f,.2f,7.3f),green);
+            for(int x=0;x<12;x++) for(int z=0;z<10;z++)
+                Box("Floor tile",parent,new Vector3(x-5.5f,.003f,z-4.5f),new Vector3(.975f,.012f,.975f),(x+z)%2==0?Mat("Cream tile",new Color(.80f,.77f,.65f)):Mat("Sand tile",new Color(.72f,.68f,.55f)),false);
+            Box("Back wall",parent,new Vector3(0,1.8f,4.95f),new Vector3(12,3.6f,.18f),cream);
+            Box("Ceiling",parent,new Vector3(0,3.65f,0),new Vector3(12,.1f,10),cream).GetComponent<Renderer>().shadowCastingMode=ShadowCastingMode.Off;
+            Box("Left wall",parent,new Vector3(-6,1.8f,0),new Vector3(.18f,3.6f,10),cream);
+            Box("Right wall",parent,new Vector3(6,1.8f,0),new Vector3(.18f,3.6f,10),cream);
+            Box("Back splash",parent,new Vector3(-.8f,1.2f,4.84f),new Vector3(9.8f,.8f,.04f),Mat("Sage tile",new Color(.49f,.63f,.53f)));
+            for(int x=0;x<20;x++)Box("Tile grout",parent,new Vector3(-5.55f+x*.5f,1.2f,4.81f),new Vector3(.012f,.8f,.008f),white,false);
+            for(int y=0;y<3;y++)Box("Tile grout",parent,new Vector3(-.8f,.95f+y*.25f,4.81f),new Vector3(9.8f,.012f,.008f),white,false);
+            Box("Back skirting",parent,new Vector3(0,.10f,4.83f),new Vector3(11.8f,.2f,.05f),green);
+            Box("Right skirting",parent,new Vector3(5.88f,.10f,0),new Vector3(.05f,.2f,9.9f),green);
+            Box("Left skirting",parent,new Vector3(-5.88f,.10f,0),new Vector3(.05f,.2f,9.9f),green);
             // A framed stylized view is inexpensive on standalone headsets.
-            var window=Empty("Window",parent,new Vector3(-3.885f,2.0f,.65f));window.localRotation=Quaternion.Euler(0,-90,0);
+            var window=Empty("Window",parent,new Vector3(-5.885f,2.2f,3.25f));window.localRotation=Quaternion.Euler(0,-90,0);
             Box("Window sky",window,Vector3.zero,new Vector3(2.05f,1.4f,.025f),Mat("Sky",new Color(.49f,.74f,.83f)),false);
             Sphere("Distant hill",window,new Vector3(0,-.45f,-.03f),new Vector3(2.0f,.75f,.03f),Mat("Hill",new Color(.43f,.59f,.39f)));
             Box("Window top",window,new Vector3(0,.73f,-.055f),new Vector3(2.16f,.08f,.12f),wood);
@@ -351,35 +359,36 @@ namespace HouseSim.Kitchen.Editor
             Box("Window mullion",window,new Vector3(0,0,-.07f),new Vector3(.05f,1.45f,.06f),white);
             for(int i=0;i<3;i++)
             {
-                var light=Primitive("Pendant shade",PrimitiveType.Cylinder,parent,new Vector3(-1.45f+i*1.45f,2.78f,.0f),new Vector3(.46f,.11f,.46f),green,false);
-                Box("Pendant cord",parent,new Vector3(-1.45f+i*1.45f,3.0f,0),new Vector3(.018f,.3f,.018f),dark,false);
-                Primitive("Pendant diffuser",PrimitiveType.Cylinder,parent,new Vector3(-1.45f+i*1.45f,2.66f,0),new Vector3(.39f,.014f,.39f),Mat("Lamp glow",new Color(1,.84f,.47f),0,true),false);
+                var light=Primitive("Pendant shade",PrimitiveType.Cylinder,parent,new Vector3(-1.45f+i*1.45f,3.0f,.3f),new Vector3(.46f,.11f,.46f),green,false);
+                Box("Pendant cord",parent,new Vector3(-1.45f+i*1.45f,3.33f,.3f),new Vector3(.018f,.6f,.018f),dark,false);
+                Primitive("Pendant diffuser",PrimitiveType.Cylinder,parent,new Vector3(-1.45f+i*1.45f,2.88f,.3f),new Vector3(.39f,.014f,.39f),Mat("Lamp glow",new Color(1,.84f,.47f),0,true),false);
             }
-            Text("Kitchen title","THE DAILY KITCHEN",parent,new Vector3(0,2.98f,3.50f),.058f).color=new Color(.12f,.25f,.20f);
-            Text("Kitchen subtitle","FRESH INGREDIENTS  /  GOOD FOOD  /  MORE ENERGY",parent,new Vector3(0,2.61f,3.50f),.021f).color=new Color(.2f,.32f,.26f);
+            Text("Kitchen title","THE DAILY KITCHEN",parent,new Vector3(-.65f,3.32f,4.8f),.058f).color=new Color(.12f,.25f,.20f);
+            Text("Kitchen subtitle","FRESH INGREDIENTS  /  GOOD FOOD  /  MORE ENERGY",parent,new Vector3(-.65f,2.95f,4.8f),.021f).color=new Color(.2f,.32f,.26f);
         }
         static void CreateBoards(Transform parent,KitchenSession session)
         {
-            var recipes=Empty("Recipe wall",parent,new Vector3(3.865f,1.87f,1.2f));recipes.localRotation=Quaternion.Euler(0,90,0);
-            Box("Recipe frame",recipes,Vector3.zero,new Vector3(2.7f,1.65f,.055f),wood);
-            Box("Recipe board",recipes,new Vector3(0,0,-.035f),new Vector3(2.59f,1.55f,.025f),dark,false);
-            Text("Recipe title","THREE WAYS TO RECHARGE",recipes,new Vector3(0,.67f,-.055f),.029f);
-            Text("Recipes","01   ROAST CHICKEN\n       Pale -15  /  Golden +30  /  Burnt -20\n       Close oven. Set 25-30 seconds.\n\n02   PAN-SEARED STEAK\n       Rare +5  /  Perfect +25  /  Burnt -15\n       Medium heat: 8-17 seconds.\n\n03   FRUIT & VEG SALAD\n       Clean +20  /  Dirty -15\n       Wash 3s, chop two kinds, mix.",recipes,new Vector3(-1.14f,.40f,-.055f),.022f,TextAnchor.UpperLeft);
-            var board=Empty("Kitchen inventory board",parent,new Vector3(3.85f,1.65f,-1.65f));board.localRotation=Quaternion.Euler(0,90,0);
-            Box("Inventory back",board,Vector3.zero,new Vector3(2.2f,2.3f,.06f),dark);
-            session.energyText=Text("Energy value","ENERGY 70 / 100",board,new Vector3(0,.95f,-.05f),.038f);
-            var bar=Empty("Energy bar",board,new Vector3(0,.68f,-.06f));
-            Box("Energy track",bar,Vector3.zero,new Vector3(1.8f,.105f,.02f),cream,false);
-            var fill=Box("Energy fill",bar,Vector3.zero,new Vector3(1.8f,.09f,.026f),green,false);
-            var display=bar.gameObject.AddComponent<KitchenEnergyBar>();display.session=session;display.fill=fill.transform;display.fillRenderer=fill.GetComponent<Renderer>();display.fullWidth=1.8f;
-            session.resourceText=Text("Shared inventory","INVENTORY",board,new Vector3(-.93f,.50f,-.055f),.023f,TextAnchor.UpperLeft);
-            session.statusText=Screen("Last action",parent,new Vector3(.1f,.9f,-.34f),2.5f,.19f);
-            var help=Empty("Controls board",parent,new Vector3(.3f,1.65f,-3.55f));help.localRotation=Quaternion.Euler(0,180,0);
-            Box("Controls frame",help,Vector3.zero,new Vector3(3.05f,1.9f,.07f),wood);
-            Box("Controls face",help,new Vector3(0,0,-.05f),new Vector3(2.93f,1.79f,.02f),dark,false);
-            Text("Controls title","ONE HAND IS ENOUGH",help,new Vector3(0,.72f,-.07f),.035f);
-            Text("Controls instructions","QUEST 2 / 3\nGrip to grab. Pull doors. Grip and turn knobs.\nRest food on the board before cutting.\nBring a meal to your mouth + trigger to eat.\nEither stick: forward teleport; sideways turn.\n\nPC PREVIEW\nWASD move  /  Hold right mouse to look\nLeft click grab / release  /  E interact\nScroll knob or held reach  /  F eat  /  C chop",help,new Vector3(-1.3f,.45f,-.07f),.022f,TextAnchor.UpperLeft);
-            Hint(parent,"energy","Eat a meal near your mouth with the trigger.\nWatch the energy bar: preparation changes the result.",new Vector3(2.85f,1.65f,-1.2f));
+            var recipes=Empty("Recipe wall",parent,new Vector3(4.5f,1.98f,4.78f));
+            Box("Recipe frame",recipes,Vector3.zero,new Vector3(2.55f,1.5f,.055f),wood);
+            Box("Recipe board",recipes,new Vector3(0,0,-.035f),new Vector3(2.43f,1.38f,.025f),dark,false);
+            Text("Recipe title","Recipes:",recipes,new Vector3(-1.08f,.58f,-.055f),.034f,TextAnchor.UpperLeft);
+            RecipeRow("chicken","Roast Chicken","25s-30s",recipes,.16f);
+            RecipeRow("steak","Pan-Seared Steak","8s-17s",recipes,-.13f);
+            RecipeRow("salad","Salad","cleaned fruit & Veg",recipes,-.42f);
+            var board=Empty("Kitchen inventory board",parent,new Vector3(-5.85f,1.6f,.5f));board.localRotation=Quaternion.Euler(0,-90,0);
+            Box("Inventory back",board,Vector3.zero,new Vector3(1.9f,2.0f,.06f),dark);
+            session.resourceText=Text("Shared inventory","INVENTORY",board,new Vector3(-.82f,.85f,-.055f),.022f,TextAnchor.UpperLeft);
+            session.statusText=Screen("Last action",parent,new Vector3(.1f,.9f,-.19f),2.5f,.19f);
+            Hint(parent,"energy","Eat a meal near your mouth with the trigger.\nYour energy is shown at the upper-left of your view.",new Vector3(2.4f,1.65f,.3f));
+        }
+        static void RecipeRow(string id,string dish,string note,Transform parent,float y)
+        {
+            var name=Text("Recipe "+id,dish,parent,new Vector3(-1.08f,y,-.055f),.019f,TextAnchor.UpperLeft);
+            var nameFit=name.gameObject.AddComponent<KitchenTextFit>();nameFit.maxWidth=1.27f;nameFit.maxHeight=.18f;
+            var detail=Text("Recipe "+id+" detail",note,parent,new Vector3(1.1f,y,-.055f),.018f,TextAnchor.UpperRight);
+            detail.alignment=TextAlignment.Right;
+            var detailFit=detail.gameObject.AddComponent<KitchenTextFit>();detailFit.maxWidth=.88f;detailFit.maxHeight=.20f;
+            detail.color=new Color(.73f,.85f,.68f);
         }
         static void CreateGrid(Transform parent,GameObject foundation,GameObject fridge,GameObject hob,GameObject oven)
         {
@@ -388,7 +397,7 @@ namespace HouseSim.Kitchen.Editor
             var cells=new List<Transform>();var indicators=new List<Renderer>();
             for(int i=0;i<4;i++)
             {
-                var cell=Empty("Grid cell "+i,root.transform,new Vector3(-2.8f+(i%2)*1.3f,0,-1.0f-(i/2)*1.4f));cells.Add(cell);
+                var cell=Empty("Grid cell "+i,root.transform,new Vector3(-4.7f+(i%2)*1.6f,0,-1.3f-(i/2)*1.8f));cells.Add(cell);
                 var marker=Box("Placement pad "+i,cell,new Vector3(0,.015f,0),new Vector3(1.13f,.025f,1.06f),Mat("Grid glow",new Color(.22f,.51f,.39f)),false);indicators.Add(marker.GetComponent<Renderer>());
                 var select=Box("Build here "+(i+1),cell,new Vector3(0,.05f,-.60f),new Vector3(.54f,.06f,.18f),brass);
                 var gridCell=select.AddComponent<KitchenGridCell>();gridCell.grid=grid;gridCell.index=i;
@@ -396,9 +405,9 @@ namespace HouseSim.Kitchen.Editor
                 Text("Cell label","BUILD "+(i+1),cell,new Vector3(0,.085f,-.60f),.018f).transform.localRotation=Quaternion.Euler(90,0,0);
             }
             grid.cells=cells.ToArray();grid.cellIndicators=indicators.ToArray();
-            var toolbar=Empty("Build menu",root.transform,new Vector3(-3.8f,1.45f,-1.75f));toolbar.localRotation=Quaternion.Euler(0,-90,0);
-            Box("Build panel",toolbar,Vector3.zero,new Vector3(2.25f,1.2f,.04f),dark);
-            Text("Build title","MAKE ROOM FOR MORE",toolbar,new Vector3(0,.50f,-.04f),.026f);
+            var toolbar=Empty("Build menu",root.transform,new Vector3(-5.8f,1.65f,-2.2f));toolbar.localRotation=Quaternion.Euler(0,-90,0);
+            Box("Build panel",toolbar,Vector3.zero,new Vector3(2.45f,1.45f,.04f),dark);
+            Text("Build title","KITCHEN EXPANSION",toolbar,new Vector3(0,.61f,-.04f),.026f);
             grid.label=Text("Build choice","SELECT A MODULE",toolbar,new Vector3(0,.23f,-.055f),.020f);
             string[] labels={"BASE","FRIDGE","HOB","OVEN"};
             for(int i=0;i<4;i++)
@@ -407,8 +416,9 @@ namespace HouseSim.Kitchen.Editor
                 var action=button.AddComponent<KitchenAction>();action.label=labels[i];UnityEventTools.AddIntPersistentListener(action.action,grid.Select,i);
                 Text(labels[i]+" label",labels[i],toolbar,new Vector3(-.8f+i*.54f,-.12f,-.12f),.019f);
             }
-            Text("Build instructions","Choose a module, then a floor BUILD pad.\nPlace BASE first. One appliance per base.",toolbar,new Vector3(0,-.38f,-.05f),.018f);
-            Hint(root.transform,"building","Pick BASE on the wall, then a floor BUILD pad.\nNext select an appliance and the same grid cell.",new Vector3(-2.6f,1.25f,-1.6f));
+            var instructions=Text("Build instructions","Choose a module, then a floor BUILD pad.\nPlace BASE first. One appliance per base.",toolbar,new Vector3(0,-.38f,-.05f),.016f);
+            var fit=instructions.gameObject.AddComponent<KitchenTextFit>();fit.maxWidth=2.20f;fit.maxHeight=.28f;
+            Hint(root.transform,"building","Pick BASE on the wall, then a floor BUILD pad.\nNext select an appliance and the same grid cell.",new Vector3(-3.6f,1.25f,-2.1f));
         }
         static TextMesh Screen(string name,Transform parent,Vector3 position,float width,float height)
         {
@@ -434,10 +444,22 @@ namespace HouseSim.Kitchen.Editor
         {
             var root=new GameObject(label+" rotary knob");root.transform.SetParent(parent,false);root.transform.localPosition=position;
             var visual=Empty("Dial",root.transform,Vector3.zero);
-            var disk=Primitive("Dial grip",PrimitiveType.Cylinder,visual,Vector3.zero,new Vector3(.15f,.045f,.15f),brass,true);disk.transform.localRotation=Quaternion.Euler(90,0,0);
-            Box("Dial index",visual,new Vector3(0,.046f,-.048f),new Vector3(.012f,.042f,.008f),dark,false);
+            visual.localRotation=Quaternion.AngleAxis(-135,Vector3.back);
+            var disk=Primitive("Dial grip",PrimitiveType.Cylinder,visual,Vector3.zero,new Vector3(.17f,.045f,.17f),brass,true);disk.transform.localRotation=Quaternion.Euler(90,0,0);
+            Box("Dial index",visual,new Vector3(0,.05f,-.048f),new Vector3(.012f,.050f,.008f),dark,false);
             var knob=root.AddComponent<KitchenKnob>();knob.knobVisual=visual;knob.minValue=0;knob.maxValue=max;knob.step=step;knob.unit=unit;knob.labelPrefix=label;knob.localAxis=Vector3.back;
-            knob.label=Text(label+" value",label,root.transform,new Vector3(0,-.14f,-.05f),.017f);
+            knob.GetComponent<XRSimpleInteractable>().colliders.Clear();
+            knob.GetComponent<XRSimpleInteractable>().colliders.Add(disk.GetComponent<Collider>());
+            int intervals=label=="Oven"?6:4;
+            for(int i=0;i<=intervals;i++)
+            {
+                float degrees=-135+i*270f/intervals;
+                Vector3 direction=Quaternion.AngleAxis(degrees,Vector3.back)*Vector3.up;
+                var tick=Box("Dial tick "+i,root.transform,direction*.108f+Vector3.back*.008f,new Vector3(.007f,.021f,.006f),white,false);
+                tick.transform.localRotation=Quaternion.AngleAxis(degrees,Vector3.back);
+                string value=(max*i/intervals).ToString("0")+(i==intervals?unit:"");
+                Text("Dial scale "+i,value,root.transform,direction*.145f+Vector3.back*.012f,.008f,TextAnchor.MiddleCenter);
+            }
             return knob;
         }
         static void Button(string name,Transform parent,Vector3 position,Vector3 size,string label,UnityAction onClick)

@@ -48,6 +48,14 @@ namespace HouseSim.Kitchen
                 desktop.viewCamera = cam;
                 desktop.playerRoot = origin.transform;
             }
+            var hud = gameObject.GetComponent<KitchenEnergyHUD>();
+            if (!hud) hud = gameObject.AddComponent<KitchenEnergyHUD>();
+            hud.session = session;
+            hud.viewCamera = cam;
+            var recovery = gameObject.GetComponent<KitchenPlayerRecovery>();
+            if (!recovery) recovery = gameObject.AddComponent<KitchenPlayerRecovery>();
+            recovery.origin = origin;
+            recovery.spawn = spawn;
             Application.targetFrameRate = 72;
             Application.runInBackground = true;
         }
