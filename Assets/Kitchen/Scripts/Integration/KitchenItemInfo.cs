@@ -14,6 +14,25 @@ namespace HouseSim.Kitchen
         KitchenFood food;
         KitchenPan pan;
         KitchenPendantLights lights;
+        public Vector3 InitialDescriptionPosition { get; private set; }
+        bool positionCaptured;
+        void Start() => CaptureDescriptionPosition();
+
+        public void CaptureDescriptionPosition()
+        {
+            if (positionCaptured) return;
+            var bounds = new Bounds(transform.position, Vector3.zero);
+            bool found = false;
+            foreach (var renderer in GetComponentsInChildren<Renderer>())
+            {
+                // Stock inside a fridge has its own description and must not move the fridge's anchor.
+                if (!renderer.enabled || renderer.GetComponentInParent<KitchenItemInfo>() != this) continue;
+                if (!found) { bounds = renderer.bounds; found = true; }
+                else bounds.Encapsulate(renderer.bounds);
+            }
+            InitialDescriptionPosition = new Vector3(bounds.center.x, bounds.max.y + .12f, bounds.center.z);
+            positionCaptured = true;
+        }
         void Awake()
         {
             fridge = GetComponent<KitchenFridge>(); oven = GetComponent<KitchenOven>();

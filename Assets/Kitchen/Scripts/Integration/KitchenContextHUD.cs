@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace HouseSim.Kitchen
 {
-    /// <summary>Non-interactive, bottom-of-view inspection card. Never uses proximity popups.</summary>
+    /// <summary>Pointer-only inspection card anchored above the item's initial world position.</summary>
     public sealed class KitchenContextHUD : MonoBehaviour
     {
         public Camera viewCamera;
@@ -20,37 +19,30 @@ namespace HouseSim.Kitchen
         RectTransform panel;
         Text titleText, bodyText;
         float nextScan;
-        bool immersive;
 
         void Start()
         {
-            immersive = XRSettings.isDeviceActive || Application.platform == RuntimePlatform.Android;
             interactors = playerRoot.GetComponentsInChildren<XRBaseInteractor>(true);
             var go = new GameObject("Pointed item HUD",typeof(RectTransform),typeof(Canvas),typeof(CanvasGroup));
             go.transform.SetParent(transform,false);
             DisplayCanvas = go.GetComponent<Canvas>();
-            DisplayCanvas.renderMode = immersive ? RenderMode.WorldSpace : RenderMode.ScreenSpaceOverlay;
+            DisplayCanvas.renderMode = RenderMode.WorldSpace;
             DisplayCanvas.worldCamera = viewCamera;
             DisplayCanvas.sortingOrder = 90;
             group = go.GetComponent<CanvasGroup>(); group.alpha = 0; group.blocksRaycasts = false; group.interactable = false;
             var canvasRect = (RectTransform)go.transform;
-            if (immersive)
-            {
-                canvasRect.SetParent(viewCamera.transform,false);
-                canvasRect.sizeDelta = new Vector2(560,90);
-                canvasRect.localPosition = new Vector3(0,-.25f,.85f);
-                canvasRect.localRotation = Quaternion.identity;
-                canvasRect.localScale = Vector3.one*.001f;
-            }
+            canvasRect.sizeDelta = new Vector2(560,120);
+            canvasRect.pivot = new Vector2(.5f,0);
+            canvasRect.localScale = Vector3.one*.0012f;
             panel = Rect("Inspect card",canvasRect);
-            panel.anchorMin = panel.anchorMax = immersive ? new Vector2(.5f,.5f) : new Vector2(.5f,0);
-            panel.pivot = immersive ? new Vector2(.5f,.5f) : new Vector2(.5f,0);
-            panel.sizeDelta = new Vector2(560,90);
-            panel.anchoredPosition = immersive ? Vector2.zero : new Vector2(0,24);
+            panel.anchorMin = panel.anchorMax = new Vector2(.5f,0);
+            panel.pivot = new Vector2(.5f,0);
+            panel.sizeDelta = new Vector2(560,120);
+            panel.anchoredPosition = Vector2.zero;
             var background = panel.gameObject.AddComponent<Image>();
             background.color = new Color(.025f,.05f,.045f,.82f); background.raycastTarget = false;
             titleText = Label("Item title",panel,20,new Color(.94f,.90f,.75f),new Vector2(16,-8),new Vector2(-16,-34));
-            bodyText = Label("Item description",panel,17,new Color(.87f,.89f,.85f),new Vector2(16,-36),new Vector2(-16,-82));
+            bodyText = Label("Item description",panel,17,new Color(.87f,.89f,.85f),new Vector2(16,-36),new Vector2(-16,-112));
         }
         static RectTransform Rect(string name,Transform parent)
         {
@@ -71,14 +63,23 @@ namespace HouseSim.Kitchen
             if (Time.unscaledTime >= nextScan)
             {
                 nextScan=Time.unscaledTime+.08f;
+                var previous = Current;
                 Current = FindPointedItem();
+                if (Current && Current != previous) PositionAtItem(Current);
                 if (Current) { titleText.text=Current.ReadTitle(); bodyText.text=Current.ReadDescription(); }
             }
             group.alpha=Mathf.MoveTowards(group.alpha,Current ? 1 : 0,Time.unscaledDeltaTime*7);
-            if (!immersive)
+        }
+        void PositionAtItem(KitchenItemInfo item)
+        {
+            item.CaptureDescriptionPosition();
+            var card = DisplayCanvas.transform;
+            card.position = item.InitialDescriptionPosition;
+            // Face the viewer once on appearance; neither position nor rotation follows the head.
+            if (viewCamera)
             {
-                panel.sizeDelta=new Vector2(Mathf.Min(560,Screen.width-32),90);
-                panel.anchoredPosition=new Vector2(0,desktop && desktop.showHelp ? 108 : 24);
+                Vector3 forward = card.position - viewCamera.transform.position;
+                if (forward.sqrMagnitude > .0001f) card.rotation = Quaternion.LookRotation(forward, Vector3.up);
             }
         }
         KitchenItemInfo FindPointedItem()

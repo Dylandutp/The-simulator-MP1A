@@ -40,7 +40,7 @@ namespace HouseSim.Kitchen
             panel.pivot = immersive ? new Vector2(.5f,.5f) : new Vector2(0,1);
             panel.anchoredPosition = immersive ? Vector2.zero : new Vector2(24,-24);
             var background = panel.gameObject.AddComponent<Image>();
-            background.color = new Color(.035f,.065f,.06f,.90f);
+            background.color = new Color(.24f,.29f,.27f,.65f);
             background.raycastTarget = false;
             var label = Rect("Energy value", panel, new Vector2(238,32));
             label.anchorMin = label.anchorMax = new Vector2(0,1);
@@ -48,7 +48,7 @@ namespace HouseSim.Kitchen
             label.anchoredPosition = new Vector2(16,-6);
             valueText = label.gameObject.AddComponent<Text>();
             valueText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            valueText.fontSize = 23;
+            valueText.fontSize = 18;
             valueText.alignment = TextAnchor.MiddleLeft;
             valueText.color = new Color(.96f,.94f,.84f);
             valueText.raycastTarget = false;

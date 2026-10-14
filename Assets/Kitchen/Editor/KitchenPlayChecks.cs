@@ -650,6 +650,8 @@ namespace HouseSim.Kitchen.Editor
                 Assert(Near(angle(), closed), prefix + "E-and-wheel-do-not-toggle");
                 var hover=Object.FindFirstObjectByType<KitchenContextHUD>();
                 Assert(hover && hover.Current && !string.IsNullOrEmpty(hover.DisplayedTitle),prefix+"pointing-shows-context-HUD");
+                Assert(Vector3.Distance(hover.DisplayCanvas.transform.position, hover.Current.InitialDescriptionPosition)<.001f,
+                    prefix+"description-at-initial-item-anchor");
                 QueuePointer(inputPointer, true);
             });
             InputSteps.Add(() =>
@@ -895,7 +897,8 @@ namespace HouseSim.Kitchen.Editor
             var context=Object.FindFirstObjectByType<KitchenContextHUD>();
             Assert(context && context.DisplayCanvas,"context/initialized");
             var panel=context.DisplayCanvas.transform.Find("Inspect card") as RectTransform;
-            Assert(panel && panel.anchorMin==new Vector2(.5f,0) && panel.anchoredPosition.y>0,"context/bottom-view-position");
+            Assert(panel && context.DisplayCanvas.renderMode==RenderMode.WorldSpace
+                && !context.DisplayCanvas.transform.IsChildOf(context.viewCamera.transform),"context/world-space-not-camera-attached");
             Assert(context.DisplayCanvas.GetComponent<CanvasGroup>().blocksRaycasts==false,"context/does-not-block-pointer");
             var fridge=Object.FindFirstObjectByType<KitchenFridge>();
             fridge.door.SetOpenImmediately(false); Physics.SyncTransforms();
