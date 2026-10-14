@@ -25,11 +25,9 @@ namespace HouseSim.Kitchen
             Camera cam = origin.Camera != null ? origin.Camera : Camera.main;
             if (cam == null) yield break;
             session.mouthAnchor = cam.transform;
-            foreach (var controls in origin.GetComponentsInChildren<ControllerInputActionManager>(true))
-            {
-                controls.smoothMotionEnabled = false;
-                controls.smoothTurnEnabled = false;
-            }
+            var controllerControls = gameObject.GetComponent<KitchenControllerControls>();
+            if (!controllerControls) controllerControls = gameObject.AddComponent<KitchenControllerControls>();
+            controllerControls.Configure(origin);
             // The room owns its lighting; avoid doubling the original template sun.
             foreach (var light in origin.gameObject.scene.GetRootGameObjects())
                 if (light.TryGetComponent<Light>(out var sun) && sun.type == LightType.Directional) sun.enabled = false;

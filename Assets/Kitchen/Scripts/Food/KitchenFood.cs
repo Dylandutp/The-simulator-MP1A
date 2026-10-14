@@ -84,7 +84,7 @@ namespace HouseSim.Kitchen
             var session = KitchenSession.Instance;
             if (!IsHeld || session == null || session.mouthAnchor == null) return;
             if (Vector3.Distance(transform.position, session.mouthAnchor.position) <= mouthDistance) TryConsume();
-            else session.Notify("Bring the food to your mouth, then press trigger to eat.");
+            else session.Notify("Bring the food to your mouth, then press B / Y to eat.");
         }
 
         public void SetDesktopHeld(bool held)

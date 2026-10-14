@@ -14,6 +14,7 @@ namespace HouseSim.Kitchen.Editor
 
         public static IEnumerator Run(Action<bool, string> check, Action complete)
         {
+            yield return KitchenControllerChecks.Run(check);
             yield return WashAndCut(check);
             yield return Contacts(check);
             yield return KitchenSnapChecks.Run(check);
