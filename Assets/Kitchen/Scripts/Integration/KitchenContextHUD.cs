@@ -110,6 +110,13 @@ namespace HouseSim.Kitchen
             }
             return nearest ? nearest.GetComponentInParent<KitchenItemInfo>() : null;
         }
+        void OnEnable() { if (DisplayCanvas) DisplayCanvas.enabled = true; nextScan = 0; }
+        void OnDisable()
+        {
+            Current = null;
+            if (group) group.alpha = 0;
+            if (DisplayCanvas) DisplayCanvas.enabled = false;
+        }
         void OnDestroy() { if(DisplayCanvas) Destroy(DisplayCanvas.gameObject); }
     }
 }

@@ -78,6 +78,9 @@ namespace HouseSim.Kitchen
 
         private void LateUpdate() => Refresh();
 
+        private void OnEnable() { if (DisplayCanvas) DisplayCanvas.enabled = true; }
+        private void OnDisable() { if (DisplayCanvas) DisplayCanvas.enabled = false; }
+
         private void Refresh()
         {
             if (!session || !fill || previousEnergy == session.Energy) return;

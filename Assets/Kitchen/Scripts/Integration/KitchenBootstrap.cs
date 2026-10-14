@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.XR.CoreUtils;
 
 namespace HouseSim.Kitchen
 {
@@ -15,7 +16,19 @@ namespace HouseSim.Kitchen
                 yield return SceneManager.LoadSceneAsync(masterScene, LoadSceneMode.Additive);
             if (!SceneManager.GetSceneByName(kitchenScene).isLoaded)
                 yield return SceneManager.LoadSceneAsync(kitchenScene, LoadSceneMode.Additive);
-            SceneManager.SetActiveScene(SceneManager.GetSceneByName(kitchenScene));
+            var room = SceneManager.GetSceneByName(kitchenScene);
+            SceneManager.SetActiveScene(room);
+            // Only the standalone entry owns this initial teleport. A house loading
+            // the room additively leaves its existing player's position unchanged.
+            var origin = FindFirstObjectByType<XROrigin>();
+            foreach (var root in room.GetRootGameObjects())
+            {
+                var setup = root.GetComponentInChildren<KitchenRuntimeSetup>();
+                if (!setup || !setup.spawn || !origin) continue;
+                origin.transform.SetPositionAndRotation(setup.spawn.position, setup.spawn.rotation);
+                setup.GetComponent<KitchenRoomScope>()?.RefreshPresence();
+                break;
+            }
         }
     }
 }
