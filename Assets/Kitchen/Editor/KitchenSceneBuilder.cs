@@ -379,7 +379,7 @@ namespace HouseSim.Kitchen.Editor
             Box("Inventory back",board,Vector3.zero,new Vector3(1.9f,2.0f,.06f),dark);
             session.resourceText=Text("Shared inventory","INVENTORY",board,new Vector3(-.82f,.85f,-.055f),.022f,TextAnchor.UpperLeft);
             session.statusText=Screen("Last action",parent,new Vector3(.1f,.9f,-.19f),2.5f,.19f);
-            Hint(parent,"energy","Eat a meal near your mouth with X.\nYour energy is shown at the upper-left of your view.",new Vector3(2.4f,1.65f,.3f));
+            Hint(parent,"energy","Hold a meal and press X to eat.\nYour energy is shown at the upper-left of your view.",new Vector3(2.4f,1.65f,.3f));
         }
         static void RecipeRow(string id,string dish,string note,Transform parent,float y)
         {

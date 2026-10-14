@@ -40,31 +40,30 @@ namespace HouseSim.Kitchen
         void Update()
         {
             if (interactors == null || eat == null) return;
-            if (eat.WasPressedThisFrame()) EatNearestHeldFood();
+            if (eat.WasPressedThisFrame()) EatHeldFood();
             float direction = (push.IsPressed() ? 1 : 0) - (pull.IsPressed() ? 1 : 0);
             if (direction != 0) AdjustHeldReach(direction * reachSpeed * Time.deltaTime);
         }
 
-        void EatNearestHeldFood()
+        void EatHeldFood()
         {
-            var mouth = KitchenSession.Instance?.mouthAnchor;
-            if (!mouth) return;
-            KitchenFood nearest = null;
-            float nearestDistance = float.PositiveInfinity;
+            // Match A/B hand priority, without imposing a head/hand distance limit.
+            var food = FindHeldFood(InteractorHandedness.Right) ?? FindHeldFood(InteractorHandedness.Left);
+            if (food) food.TryConsume();
+        }
+
+        KitchenFood FindHeldFood(InteractorHandedness hand)
+        {
             foreach (var interactor in interactors)
             {
-                if (!interactor || !interactor.isActiveAndEnabled || !interactor.hasSelection) continue;
+                if (!interactor || !interactor.isActiveAndEnabled || interactor.handedness != hand || !interactor.hasSelection) continue;
                 foreach (var selected in interactor.interactablesSelected)
                 {
                     var food = selected.transform.GetComponent<KitchenFood>();
-                    if (!food || food.IsConsumed) continue;
-                    float distance = (food.transform.position - mouth.position).sqrMagnitude;
-                    if (distance >= nearestDistance) continue;
-                    nearest = food;
-                    nearestDistance = distance;
+                    if (food && !food.IsConsumed && food.IsHeld) return food;
                 }
             }
-            if (nearest) nearest.TryEatHeldNearMouth();
+            return null;
         }
 
         void AdjustHeldReach(float amount)

@@ -95,6 +95,7 @@ namespace HouseSim.Kitchen.Editor
             var rotations = roots.Select(r => r.transform.localRotation).ToArray();
             var nearActive = new[] { left.gameObject.activeSelf, right.gameObject.activeSelf };
             bool keepRightSelected = right.keepSelectedTargetValid;
+            bool keepLeftSelected = left.keepSelectedTargetValid;
             var attachments = new[] { (InteractionAttachController)left.interactionAttachController, (InteractionAttachController)right.interactionAttachController };
             var velocityScaling = attachments.Select(a => a.useDistanceBasedVelocityScaling).ToArray();
             var modality = origin.GetComponentInChildren<XRInputModalityManager>(true);
@@ -162,11 +163,6 @@ namespace HouseSim.Kitchen.Editor
                     "controller/held/B-pushes-item-without-eating");
                 InputSystem.QueueStateEvent(rightDevice, new XRSimulatedControllerState());
                 mouth.transform.position = new Vector3(90, 10, 90);
-                InputSystem.QueueStateEvent(leftDevice, new XRSimulatedControllerState { buttons = Button(ControllerButton.PrimaryButton) });
-                yield return new WaitForSeconds(.1f);
-                check(rightFood && !rightFood.IsConsumed && leftFood && !leftFood.IsConsumed, "controller/held/X-cannot-eat-food-far-from-mouth");
-                InputSystem.QueueStateEvent(leftDevice, new XRSimulatedControllerState());
-                yield return null;
                 // End the synthetic grab before the edible target is destroyed. From
                 // here keep the actual trigger pressed, just as a player would.
                 right.EndManualInteraction();
@@ -177,23 +173,38 @@ namespace HouseSim.Kitchen.Editor
                 if (!right.IsSelecting(rightGrab))
                     right.interactionManager.SelectEnter((IXRSelectInteractor)right, (IXRSelectInteractable)rightGrab);
                 yield return new WaitForSeconds(.1f);
-                mouth.transform.position = rightFood.transform.position;
+                check(Vector3.Distance(mouth.transform.position, rightFood.transform.position) > 3f,
+                    "controller/held/right-food-far-from-mouth-before-X");
                 InputSystem.QueueStateEvent(leftDevice, new XRSimulatedControllerState { buttons = Button(ControllerButton.PrimaryButton) });
                 yield return new WaitForSeconds(.1f);
-                check(!rightFood && leftFood && !leftFood.IsConsumed, "controller/held/X-eats-right-hand-food-near-mouth-once");
-                mouth.transform.position = leftFood.transform.position;
+                check(!rightFood && leftFood && !leftFood.IsConsumed, "controller/held/X-eats-right-hand-food-at-any-distance-once");
                 yield return new WaitForSeconds(.12f);
                 check(leftFood && !leftFood.IsConsumed, "controller/held/holding-X-does-not-auto-eat-second-food");
                 before = Reach(left, leftAnchor);
                 InputSystem.QueueStateEvent(rightDevice, new XRSimulatedControllerState { buttons = Button(ControllerButton.PrimaryButton) });
                 yield return new WaitForSeconds(.2f);
                 check(Reach(left, leftAnchor) < before - .05f, "controller/held/A-adjusts-left-item-when-right-hand-empty");
+                left.EndManualInteraction();
+                left.keepSelectedTargetValid = true;
+                InputSystem.QueueStateEvent(leftDevice, new XRSimulatedControllerState { trigger = 1, buttons = Button(ControllerButton.TriggerButton) });
+                yield return null;
+                var leftGrab = leftFood.GetComponent<XRGrabInteractable>();
+                if (!left.IsSelecting(leftGrab))
+                    left.interactionManager.SelectEnter((IXRSelectInteractor)left, (IXRSelectInteractable)leftGrab);
+                yield return new WaitForSeconds(.1f);
+                check(Vector3.Distance(mouth.transform.position, leftFood.transform.position) > 3f,
+                    "controller/held/left-food-far-from-mouth-before-X");
+                InputSystem.QueueStateEvent(leftDevice, new XRSimulatedControllerState
+                    { trigger = 1, buttons = (ushort)(Button(ControllerButton.TriggerButton) | Button(ControllerButton.PrimaryButton)) });
+                yield return new WaitForSeconds(.1f);
+                check(!leftFood, "controller/held/X-eats-left-hand-food-at-any-distance");
             }
             finally
             {
                 if (left.isPerformingManualInteraction) left.EndManualInteraction();
                 if (right.isPerformingManualInteraction) right.EndManualInteraction();
                 right.keepSelectedTargetValid = keepRightSelected;
+                left.keepSelectedTargetValid = keepLeftSelected;
                 if (leftFood) UnityEngine.Object.Destroy(leftFood.gameObject);
                 if (rightFood) UnityEngine.Object.Destroy(rightFood.gameObject);
                 InputSystem.RemoveDevice(leftDevice); InputSystem.RemoveDevice(rightDevice);
