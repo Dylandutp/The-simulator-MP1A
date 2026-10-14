@@ -79,12 +79,15 @@ namespace HouseSim.Kitchen
         private void OnSelected(SelectEnterEventArgs args) { Claim(); }
         private void OnReleased(SelectExitEventArgs args) { if (!IsHeld) Released?.Invoke(this); }
 
-        private void OnActivated(ActivateEventArgs args)
+        private void OnActivated(ActivateEventArgs args) => TryEatHeldNearMouth();
+
+        public bool TryEatHeldNearMouth()
         {
             var session = KitchenSession.Instance;
-            if (!IsHeld || session == null || session.mouthAnchor == null) return;
-            if (Vector3.Distance(transform.position, session.mouthAnchor.position) <= mouthDistance) TryConsume();
-            else session.Notify("Bring the food to your mouth, then press B / Y to eat.");
+            if (!IsHeld || session == null || session.mouthAnchor == null) return false;
+            if (Vector3.Distance(transform.position, session.mouthAnchor.position) <= mouthDistance) return TryConsume();
+            session.Notify("Bring the food to your mouth, then press X to eat.");
+            return false;
         }
 
         public void SetDesktopHeld(bool held)

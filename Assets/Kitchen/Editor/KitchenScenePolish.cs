@@ -93,7 +93,7 @@ namespace HouseSim.Kitchen.Editor
             else if(root.GetComponentInChildren<KitchenWashZone>()) AddInfo(root,"Sink","Hold and lift the tap lever. Rinse fruit and vegetables in the stream for 3 seconds.");
             else if(root.GetComponentInChildren<KitchenSaladBowl>()) AddInfo(root,"Salad station","Wash and chop two different ingredients. Drop them into the bowl, then press MIX.");
             else if(root.GetComponentInChildren<KitchenTrash>()) AddInfo(root,"Food bin","Release unwanted food inside to discard it. Pans, knives and bowls are kept.");
-            else if(root.GetComponent<KitchenFood>()) AddInfo(root,"Food","Prepare before eating. Bring a meal to your mouth + B / Y, or hold it and press F on PC.");
+            else if(root.GetComponent<KitchenFood>()) AddInfo(root,"Food","Prepare before eating. Bring a meal to your mouth + X, or hold it and press F on PC.");
         }
         static void RepairInventory(GameObject room,KitchenSession session)
         {

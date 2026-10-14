@@ -9,7 +9,7 @@ namespace HouseSim.Kitchen
         [Tooltip("Index 0 is the foundation. All subsequent prefabs require a foundation.")]
         public GameObject[] modulePrefabs = Array.Empty<GameObject>();
         public Transform[] cells = Array.Empty<Transform>();
-        [Tooltip("Optional per-tile preview lights: green accepts the selected module; red refuses it.")]
+        [Tooltip("Visible placement pads in BUILD-number order. Their current centers determine where modules appear; green accepts the selected module and red refuses it.")]
         public Renderer[] cellIndicators = Array.Empty<Renderer>();
         [Tooltip("Offset from each grid cell for equipment; foundations use the cell pose.")]
         public Vector3 equipmentOffset;
@@ -73,7 +73,7 @@ namespace HouseSim.Kitchen
             }
 
             Transform cell = cells[cellIndex];
-            Vector3 position = cell.position + (selected == 0 ? Vector3.zero : cell.TransformVector(equipmentOffset));
+            Vector3 position = PlacementPosition(cellIndex) + (selected == 0 ? Vector3.zero : cell.TransformVector(equipmentOffset));
             float yaw = selected != 0 && cellIndex < equipmentYawDegrees.Length ? equipmentYawDegrees[cellIndex] : 0;
             GameObject instance = Instantiate(modulePrefabs[selected], position, cell.rotation * Quaternion.Euler(0,yaw,0), transform);
             instance.name = modulePrefabs[selected].name + " - Tile " + (cellIndex + 1);
@@ -88,6 +88,18 @@ namespace HouseSim.Kitchen
         {
             EnsureSlots();
             return cellIndex >= 0 && cellIndex < foundations.Length && foundations[cellIndex] != null;
+        }
+
+        Vector3 PlacementPosition(int cellIndex)
+        {
+            Transform cell = cells[cellIndex];
+            if (cellIndicators == null || cellIndex >= cellIndicators.Length || cellIndicators[cellIndex] == null)
+                return cell.position;
+
+            // Pads may be repositioned independently of their original cell parents.
+            // Keep the floor elevation, excluding the thin marker's visual lift.
+            Vector3 markerCenter = cellIndicators[cellIndex].bounds.center;
+            return cell.position + Vector3.ProjectOnPlane(markerCenter - cell.position, cell.up);
         }
 
         public bool HasEquipment(int cellIndex)

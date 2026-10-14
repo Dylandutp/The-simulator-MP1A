@@ -29,6 +29,12 @@ namespace HouseSim.Kitchen
         private IXRSelectInteractor hand;
         private Quaternion baseRotation;
         private Vector3 lastHandVector;
+        private Transform controllerPose;
+        private Vector3 lastControllerPosition;
+        private Quaternion lastControllerRotation;
+        private Vector3 controllerPullAxis;
+        private Vector3 localGrabPoint;
+        private bool useRayDrag;
         private float currentAngle;
         private float targetAngle;
         private bool movingToTarget;
@@ -64,6 +70,21 @@ namespace HouseSim.Kitchen
         {
             hand = args.interactorObject;
             BeginDrag(hand.transform.position);
+            Vector3 handlePoint = ClosestHandlePoint(hand.transform.position);
+            if (hand is IXRRayProvider ray)
+            {
+                Transform rayOrigin = ray.GetOrCreateRayOrigin();
+                if (rayOrigin && Vector3.Distance(handlePoint, rayOrigin.position) > .35f)
+                {
+                    controllerPose = rayOrigin;
+                    useRayDrag = true;
+                    if (ray.rayEndTransform && ray.rayEndTransform.IsChildOf(Pivot))
+                        handlePoint = ClosestHandlePoint(ray.rayEndPoint);
+                }
+            }
+            if (!controllerPose) controllerPose = hand.transform;
+            localGrabPoint = Pivot.InverseTransformPoint(handlePoint);
+            ReanchorControllerDrag();
         }
 
         private void OnRelease(SelectExitEventArgs args)
@@ -73,14 +94,14 @@ namespace HouseSim.Kitchen
 
         private void Update()
         {
-            if (hand != null && IsDragging && !movingToTarget) DragTo(hand.transform.position);
+            if (hand != null && IsDragging && !movingToTarget) UpdateControllerDrag();
             else if (movingToTarget)
             {
                 currentAngle = Mathf.MoveTowards(currentAngle, targetAngle, 150f * Time.deltaTime);
                 if (Mathf.Approximately(currentAngle, targetAngle) && movingToTarget)
                 {
                     movingToTarget = false;
-                    if (hand != null) lastHandVector = Vector3.ProjectOnPlane(hand.transform.position - Pivot.position, WorldAxis);
+                    if (hand != null) ReanchorControllerDrag();
                 }
             }
             ApplyAngle();
@@ -115,6 +136,8 @@ namespace HouseSim.Kitchen
         public void EndDrag()
         {
             hand = null;
+            controllerPose = null;
+            useRayDrag = false;
             IsDragging = false;
             // Leave the door exactly where it was released; neither grip nor release toggles it.
         }
@@ -131,8 +154,92 @@ namespace HouseSim.Kitchen
         {
             currentAngle = targetAngle = open ? openAngle : closedAngle;
             movingToTarget = false;
-            if (hand != null) lastHandVector = Vector3.ProjectOnPlane(hand.transform.position - Pivot.position, WorldAxis);
             ApplyAngle();
+            if (hand != null) ReanchorControllerDrag();
+        }
+
+        private Vector3 ClosestHandlePoint(Vector3 from)
+        {
+            Vector3 closest = Pivot.position;
+            float distance = float.PositiveInfinity;
+            foreach (Collider handle in interactable.colliders)
+            {
+                if (!handle || !handle.enabled || !handle.gameObject.activeInHierarchy) continue;
+                Vector3 point = handle.ClosestPoint(from);
+                float next = (point - from).sqrMagnitude;
+                if (next < distance) { closest = point; distance = next; }
+            }
+            return closest;
+        }
+
+        private void ReanchorControllerDrag()
+        {
+            if (!controllerPose) return;
+            lastControllerPosition = controllerPose.position;
+            lastControllerRotation = controllerPose.rotation;
+            Vector3 radius = Vector3.ProjectOnPlane(Pivot.TransformPoint(localGrabPoint) - Pivot.position, WorldAxis);
+            controllerPullAxis = Vector3.Cross(WorldAxis, radius).normalized;
+        }
+
+        private void UpdateControllerDrag()
+        {
+            if (!controllerPose) return;
+            Vector3 position = controllerPose.position;
+            Quaternion rotation = controllerPose.rotation;
+            Vector3 travel = position - lastControllerPosition;
+            Quaternion rotationDelta = rotation * Quaternion.Inverse(lastControllerRotation);
+            // A lost tracking pose must not slam the door. Rebase the next sample instead.
+            if (travel.sqrMagnitude <= .25f && Quaternion.Angle(rotation, lastControllerRotation) <= 60f)
+            {
+                // Use the handle's opening direction, not the distant controller-to-hinge
+                // angle. One comfortable 40 cm pull can traverse either door's full range.
+                float pullDelta = Vector3.Dot(travel, controllerPullAxis) * Mathf.Abs(openAngle - closedAngle) / .4f;
+                float rayDelta = 0f;
+                if (useRayDrag && (travel.sqrMagnitude > .00000001f || Quaternion.Angle(rotation, lastControllerRotation) > .005f))
+                {
+                    Vector3 handlePoint = Pivot.TransformPoint(localGrabPoint);
+                    Vector3 targetDirection = rotationDelta * (handlePoint - lastControllerPosition).normalized;
+                    rayDelta = FindRayHingeDelta(position, targetDirection, handlePoint - Pivot.position);
+                }
+                // Ray pointing and pulling can describe the same gesture. Do not add both.
+                DragByDegrees(Mathf.Abs(rayDelta) > Mathf.Abs(pullDelta) ? rayDelta : pullDelta);
+            }
+            lastControllerPosition = position;
+            lastControllerRotation = rotation;
+        }
+
+        private float FindRayHingeDelta(Vector3 origin, Vector3 direction, Vector3 radius)
+        {
+            float low = Mathf.Max(Mathf.Min(closedAngle, openAngle) - currentAngle, -25f);
+            float high = Mathf.Min(Mathf.Max(closedAngle, openAngle) - currentAngle, 25f);
+            float best = 0f;
+            float error = RayHingeError(0f, origin, direction, radius);
+            float spacing = (high - low) / 24f;
+            if (spacing < .00001f) return 0f;
+            for (int i = 0; i <= 24; i++)
+            {
+                float candidate = low + spacing * i;
+                float next = RayHingeError(candidate, origin, direction, radius);
+                if (next < error) { error = next; best = candidate; }
+            }
+            float a = Mathf.Max(low, best - spacing);
+            float b = Mathf.Min(high, best + spacing);
+            for (int i = 0; i < 8; i++)
+            {
+                float left = Mathf.Lerp(a, b, 1f / 3f);
+                float right = Mathf.Lerp(a, b, 2f / 3f);
+                if (RayHingeError(left, origin, direction, radius) < RayHingeError(right, origin, direction, radius)) b = right;
+                else a = left;
+            }
+            float refined = (a + b) * .5f;
+            return RayHingeError(refined, origin, direction, radius) < error ? refined : best;
+        }
+
+        private float RayHingeError(float degrees, Vector3 origin, Vector3 direction, Vector3 radius)
+        {
+            Vector3 candidate = Pivot.position + Quaternion.AngleAxis(degrees, WorldAxis) * radius - origin;
+            if (Vector3.Dot(candidate, direction) <= 0f) return float.PositiveInfinity;
+            return (candidate.normalized - direction).sqrMagnitude + degrees * degrees * .000000001f;
         }
 
         private void ApplyAngle()

@@ -921,7 +921,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9afbd3f816eec8498b92c15c841d926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenAction
-  label: Build in cell 1
+  label: Build in cell 2
   action:
     m_PersistentCalls:
       m_Calls:
@@ -1025,7 +1025,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenGridCell
   grid: {fileID: 806368795}
-  index: 0
+  index: 1
 --- !u!23 &55452197
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -1715,7 +1715,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9afbd3f816eec8498b92c15c841d926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenAction
-  label: Build in cell 2
+  label: Build in cell 1
   action:
     m_PersistentCalls:
       m_Calls:
@@ -1819,7 +1819,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenGridCell
   grid: {fileID: 806368795}
-  index: 1
+  index: 0
 --- !u!23 &148301331
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -2051,7 +2051,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9afbd3f816eec8498b92c15c841d926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenAction
-  label: Build in cell 4
+  label: Build in cell 3
   action:
     m_PersistentCalls:
       m_Calls:
@@ -2155,7 +2155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenGridCell
   grid: {fileID: 806368795}
-  index: 3
+  index: 2
 --- !u!23 &152407449
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -7795,15 +7795,15 @@ MonoBehaviour:
   - {fileID: 8845580381327856504, guid: c0d5f75b1c3ea7f49b5f739e08692ce1, type: 3}
   - {fileID: 51355606046981411, guid: 81ad1e343a72e094ebcbf19a3459fd17, type: 3}
   cells:
-  - {fileID: 1016546002}
   - {fileID: 1540028467}
-  - {fileID: 353379015}
+  - {fileID: 1016546002}
   - {fileID: 1253768166}
+  - {fileID: 353379015}
   cellIndicators:
-  - {fileID: 573572923}
   - {fileID: 982936161}
-  - {fileID: 453442628}
+  - {fileID: 573572923}
   - {fileID: 1310052248}
+  - {fileID: 453442628}
   equipmentOffset: {x: 0, y: 0, z: 0}
   equipmentYawDegrees:
   - 180
@@ -8055,7 +8055,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9afbd3f816eec8498b92c15c841d926, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenAction
-  label: Build in cell 3
+  label: Build in cell 4
   action:
     m_PersistentCalls:
       m_Calls:
@@ -8159,7 +8159,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenGridCell
   grid: {fileID: 806368795}
-  index: 2
+  index: 3
 --- !u!23 &818704491
 MeshRenderer:
   m_ObjectHideFlags: 0

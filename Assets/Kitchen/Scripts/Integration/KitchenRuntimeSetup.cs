@@ -39,13 +39,19 @@ namespace HouseSim.Kitchen
                     if (type == "TrackedPoseDriver" || type.Contains("MoveProvider") || type.Contains("TurnProvider")) behaviour.enabled = false;
                 }
                 if (cam.transform.parent != null) cam.transform.parent.localPosition = Vector3.zero;
-                cam.transform.localPosition = new Vector3(0, 1.65f, 0);
+                cam.transform.localPosition = new Vector3(0, KitchenPlayerHeight.InitialEyeHeight, 0);
                 cam.transform.localRotation = Quaternion.identity;
                 var desktop = origin.gameObject.GetComponent<KitchenDesktopController>();
                 if (desktop == null) desktop = origin.gameObject.AddComponent<KitchenDesktopController>();
                 desktop.viewCamera = cam;
                 desktop.playerRoot = origin.transform;
                 desktop.showHelp = false;
+            }
+            else
+            {
+                var height = gameObject.GetComponent<KitchenPlayerHeight>();
+                if (!height) height = gameObject.AddComponent<KitchenPlayerHeight>();
+                height.Configure(origin);
             }
             var hud = gameObject.GetComponent<KitchenEnergyHUD>();
             if (!hud) hud = gameObject.AddComponent<KitchenEnergyHUD>();

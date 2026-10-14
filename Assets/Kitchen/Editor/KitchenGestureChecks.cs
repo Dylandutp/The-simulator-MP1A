@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using Object = UnityEngine.Object;
 
 namespace HouseSim.Kitchen.Editor
@@ -16,9 +19,112 @@ namespace HouseSim.Kitchen.Editor
 
         public static IEnumerator Run(Action<bool, string> check)
         {
+            yield return DoorControllerGestures(check, "Fridge", false);
+            yield return DoorControllerGestures(check, "Oven", false);
+            yield return DoorControllerGestures(check, "Fridge", true);
+            yield return DoorControllerGestures(check, "Oven", true);
             yield return KnifeGestures(check);
             yield return PanGestures(check);
             yield return CaptureCutting(check);
+        }
+
+        static IEnumerator DoorControllerGestures(Action<bool, string> check, string appliance, bool far)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Kitchen/Prefabs/Stations/" + appliance + ".prefab");
+            var door = Object.Instantiate(prefab.GetComponentInChildren<KitchenDoor>().gameObject,
+                Origin + Vector3.right * 5f, Quaternion.Euler(0f, 31f, 0f)).GetComponent<KitchenDoor>();
+            var target = door.GetComponent<XRSimpleInteractable>();
+            var manager = Object.FindFirstObjectByType<XRInteractionManager>();
+            var handObject = new GameObject(appliance + " door drag controller");
+            var hand = handObject.AddComponent<KitchenDoorGestureInteractor>();
+            hand.interactionManager = manager;
+            hand.keepSelectedTargetValid = true;
+            target.interactionManager = manager;
+            string prefix = "door-controller/" + appliance + (far ? "/ray/" : "/near/");
+            int opened = 0, closed = 0;
+            door.stateChanged.AddListener(open => { if (open) opened++; else closed++; });
+            try
+            {
+                yield return null;
+                Collider handle = target.colliders[0];
+                Vector3 handlePoint = handle.bounds.center;
+                Vector3 outward = door.transform.rotation * Vector3.back;
+                hand.transform.position = handlePoint + (far ? outward * 1.7f : Vector3.zero);
+                hand.transform.rotation = Quaternion.LookRotation(-outward, Vector3.up);
+                hand.hitTransform = handle.transform;
+                hand.hitPoint = handlePoint;
+                Vector3 openingAxis = Vector3.Cross(door.WorldAxis, handlePoint - door.Pivot.position).normalized
+                    * Mathf.Sign(door.openAngle - door.closedAngle);
+                manager.SelectEnter((IXRSelectInteractor)hand, (IXRSelectInteractable)target);
+                yield return null;
+                check(door.IsDragging && Mathf.Abs(door.Angle - door.closedAngle) < .01f,
+                    prefix + "press-does-not-jump-or-toggle");
+                for (int i = 0; i < 10; i++)
+                {
+                    hand.transform.position += openingAxis * .045f;
+                    yield return null;
+                }
+                check(door.OpenAmount > .99f && opened == 1 && closed == 0,
+                    prefix + "one-short-pull-opens-with-one-state-event");
+                float atRest = door.Angle;
+                yield return null; yield return null;
+                check(Mathf.Abs(door.Angle - atRest) < .01f, prefix + "stationary-grip-holds-angle");
+                hand.transform.position -= openingAxis * .05f;
+                yield return null;
+                check(door.OpenAmount < .95f, prefix + "reverse-pull-responds-immediately-at-limit");
+                for (int i = 0; i < 9; i++)
+                {
+                    hand.transform.position -= openingAxis * .05f;
+                    yield return null;
+                }
+                check(door.OpenAmount < .01f && opened == 1 && closed == 1,
+                    prefix + "same-grip-can-fully-close-with-one-state-event");
+                manager.SelectExit((IXRSelectInteractor)hand, (IXRSelectInteractable)target);
+                yield return null;
+                hand.transform.position += openingAxis * .3f;
+                yield return null;
+                check(!door.IsDragging && door.OpenAmount < .01f, prefix + "release-stops-following-controller");
+
+                if (far)
+                {
+                    // A far ray also supports pointing along the visible handle arc with
+                    // a stationary hand, including the oven's initially foreshortened arc.
+                    handlePoint = handle.bounds.center;
+                    hand.transform.position = handlePoint + outward * 1.7f;
+                    hand.transform.rotation = Quaternion.LookRotation(handlePoint - hand.transform.position, Vector3.up);
+                    hand.hitPoint = handlePoint;
+                    manager.SelectEnter((IXRSelectInteractor)hand, (IXRSelectInteractable)target);
+                    yield return null;
+                    Vector3 radius = handlePoint - door.Pivot.position;
+                    for (int i = 1; i <= 18; i++)
+                    {
+                        float desired = (door.openAngle - door.closedAngle) * i / 18f;
+                        Vector3 next = door.Pivot.position + Quaternion.AngleAxis(desired, door.WorldAxis) * radius;
+                        hand.transform.rotation = Quaternion.LookRotation(next - hand.transform.position, Vector3.up);
+                        yield return null;
+                    }
+                    check(door.OpenAmount > .9f, prefix + "ray-wrist-arc-opens-without-moving-controller-origin");
+                    for (int i = 17; i >= 0; i--)
+                    {
+                        float desired = (door.openAngle - door.closedAngle) * i / 18f;
+                        Vector3 next = door.Pivot.position + Quaternion.AngleAxis(desired, door.WorldAxis) * radius;
+                        hand.transform.rotation = Quaternion.LookRotation(next - hand.transform.position, Vector3.up);
+                        yield return null;
+                    }
+                    check(door.OpenAmount < .1f, prefix + "reverse-ray-wrist-arc-closes");
+                    manager.SelectExit((IXRSelectInteractor)hand, (IXRSelectInteractable)target);
+                    yield return null;
+                }
+            }
+            finally
+            {
+                if (manager && target && hand && target.isSelected)
+                    manager.SelectExit((IXRSelectInteractor)hand, (IXRSelectInteractable)target);
+                if (hand) hand.enabled = false;
+                Object.Destroy(handObject);
+                Object.Destroy(door.gameObject);
+            }
+            yield return null;
         }
 
         static KitchenFood MakeFood(string kind, Vector3 position, bool frozen = true)
@@ -245,5 +351,18 @@ namespace HouseSim.Kitchen.Editor
             }
             yield return null;
         }
+    }
+
+    public sealed class KitchenDoorGestureInteractor : XRBaseInteractor, IXRRayProvider
+    {
+        public Vector3 hitPoint;
+        public Transform hitTransform;
+        public Vector3 rayEndPoint => hitPoint;
+        public Transform rayEndTransform => hitTransform;
+        public Transform GetOrCreateRayOrigin() => transform;
+        public Transform GetOrCreateAttachTransform() => attachTransform ? attachTransform : transform;
+        public void SetRayOrigin(Transform newOrigin) { }
+        public void SetAttachTransform(Transform newAttach) => attachTransform = newAttach;
+        public override void GetValidTargets(List<IXRInteractable> targets) => targets.Clear();
     }
 }

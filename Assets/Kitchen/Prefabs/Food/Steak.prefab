@@ -327,7 +327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenItemInfo
   title: Food
-  description: Prepare before eating. Bring a meal to your mouth + B / Y, or hold
+  description: Prepare before eating. Bring a meal to your mouth + X, or hold
     it and press F on PC.
 --- !u!114 &6328472665499989729
 MonoBehaviour:
