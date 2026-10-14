@@ -12,13 +12,16 @@ namespace HouseSim.Kitchen
         [Min(0.05f)] public float mouthDistance = 0.3f;
         public float CookSeconds { get; private set; }
         public float WashProgress { get; private set; }
-        public bool IsChopped { get; private set; }
+        public float VisibleWashProgress => displayedWash;
+        public int CutStage { get; private set; }
+        public bool IsChopped => CutStage > 0;
+        public static event System.Action<KitchenFood> Released;
         public float ServingsRemaining { get; private set; } = 1f;
         public bool IsConsumed => ServingsRemaining <= 0f;
         public bool IsClaimed { get; private set; }
         public float UnclaimedPortions => IsClaimed ? 0f : ServingsRemaining;
         public bool IsProduce => definition != null && definition.IsProduce;
-        public bool IsDirty => IsProduce ? WashProgress < 1f : definition != null && definition.kind == FoodKind.Salad && contaminatedSalad;
+        public bool IsDirty => contaminatedFood || (IsProduce ? WashProgress < 1f : definition != null && definition.kind == FoodKind.Salad && contaminatedSalad);
         public bool IsHeld => desktopHeld || (grab != null && grab.isSelected);
         public FoodState State => GetState(CookSeconds);
         public ResourceData CurrentResource => GetResource(CookSeconds, IsChopped);
@@ -29,20 +32,27 @@ namespace HouseSim.Kitchen
         private PlayerInventory claimedInventory;
         private bool desktopHeld;
         private bool contaminatedSalad;
+        private bool contaminatedFood;
+        private float displayedWash;
         private bool quitting;
+        private KitchenFoodModelVisual modelVisual;
 
         private void Awake()
         {
             grab = GetComponent<XRGrabInteractable>();
             colors = new MaterialPropertyBlock();
+            if (!GetComponent<KitchenContactStabilizer>()) gameObject.AddComponent<KitchenContactStabilizer>();
             if (visualRenderers == null || visualRenderers.Length == 0)
                 visualRenderers = GetComponentsInChildren<Renderer>();
+            modelVisual = GetComponent<KitchenFoodModelVisual>();
+            if (modelVisual) modelVisual.Apply(this, contaminatedFood);
         }
 
         private void OnEnable()
         {
             if (grab == null) grab = GetComponent<XRGrabInteractable>();
             grab.selectEntered.AddListener(OnSelected);
+            grab.selectExited.AddListener(OnReleased);
             grab.activated.AddListener(OnActivated);
         }
 
@@ -52,6 +62,7 @@ namespace HouseSim.Kitchen
         {
             if (grab == null) return;
             grab.selectEntered.RemoveListener(OnSelected);
+            grab.selectExited.RemoveListener(OnReleased);
             grab.activated.RemoveListener(OnActivated);
         }
 
@@ -66,6 +77,7 @@ namespace HouseSim.Kitchen
         }
 
         private void OnSelected(SelectEnterEventArgs args) { Claim(); }
+        private void OnReleased(SelectExitEventArgs args) { if (!IsHeld) Released?.Invoke(this); }
 
         private void OnActivated(ActivateEventArgs args)
         {
@@ -77,8 +89,26 @@ namespace HouseSim.Kitchen
 
         public void SetDesktopHeld(bool held)
         {
+            bool wasHeld = desktopHeld;
             desktopHeld = held;
             if (held) Claim();
+            else if (wasHeld && !IsHeld) Released?.Invoke(this);
+        }
+
+        // A short rinse completes the rule; the visible cleaning still fades smoothly.
+        private void Update()
+        {
+            if (!IsProduce || Mathf.Approximately(displayedWash, WashProgress)) return;
+            displayedWash = Mathf.MoveTowards(displayedWash, WashProgress, Time.deltaTime / 0.55f);
+            UpdateAppearance();
+        }
+
+        public void MarkUnclean()
+        {
+            if (IsConsumed || contaminatedFood) return;
+            contaminatedFood = true;
+            UpdateAppearance();
+            KitchenSession.Instance?.Notify(DisplayName + " is unclean. Eating it costs energy, even when cooked.");
         }
 
         public bool Claim()
@@ -117,13 +147,31 @@ namespace HouseSim.Kitchen
 
         public bool Chop()
         {
-            if (IsConsumed || !IsProduce || IsChopped) return false;
+            if (IsConsumed || !IsProduce || CutStage >= 2) return false;
+            if (CutStage == 1)
+            {
+                CutStage = 2;
+                GetComponent<KitchenCutVisual>()?.SetStage(CutStage);
+                UpdateAppearance();
+                KitchenSession.Instance?.Notify(DisplayName + " cut into smaller pieces. Pick up the whole portion together.");
+                return true;
+            }
             if (definition.choppedPrefab == null)
             {
                 KitchenSession.Instance?.Notify("This food has no chopped prefab configured.");
                 return false;
             }
             var replacementObject = Instantiate(definition.choppedPrefab, transform.position, transform.rotation);
+            replacementObject.transform.localScale = transform.lossyScale;
+            var oldRecovery = GetComponent<KitchenRespawnTool>();
+            var newRecovery = replacementObject.GetComponent<KitchenRespawnTool>();
+            if (oldRecovery && newRecovery)
+            {
+                newRecovery.enabled = oldRecovery.enabled;
+                newRecovery.recoveryAnchor = oldRecovery.recoveryAnchor;
+                newRecovery.minimumY = oldRecovery.minimumY;
+                newRecovery.maximumDistance = oldRecovery.maximumDistance;
+            }
             var replacement = replacementObject.GetComponent<KitchenFood>();
             if (replacement == null)
             {
@@ -131,10 +179,12 @@ namespace HouseSim.Kitchen
                 return false;
             }
             replacement.definition = definition;
-            replacement.IsChopped = true;
+            replacement.CutStage = 1;
             replacement.ServingsRemaining = ServingsRemaining;
             replacement.WashProgress = WashProgress;
             replacement.CookSeconds = CookSeconds;
+            replacement.displayedWash = displayedWash;
+            replacement.contaminatedFood = contaminatedFood;
             var nextResource = replacement.CurrentResource;
             if (!MigrateClaimedResource(nextResource))
             {
@@ -154,9 +204,15 @@ namespace HouseSim.Kitchen
                 replacementBody.linearVelocity = originalBody.linearVelocity;
                 replacementBody.angularVelocity = originalBody.angularVelocity;
             }
+            var cutVisual = replacement.GetComponent<KitchenCutVisual>();
+            if (!cutVisual) cutVisual = replacement.gameObject.AddComponent<KitchenCutVisual>();
+            cutVisual.Configure(this);
+            cutVisual.SetStage(1);
             replacement.UpdateAppearance();
+            // The replacement shares the old location for this frame, never its contacts.
+            foreach (var collider in GetComponentsInChildren<Collider>()) collider.enabled = false;
             ServingsRemaining = 0f; // The existing portion moved into the chopped replacement.
-            KitchenSession.Instance?.Notify(DisplayName + " chopped. " + (replacement.IsDirty ? "Still needs washing." : "Clean and ready for salad."));
+            KitchenSession.Instance?.Notify(DisplayName + " chopped. Lift the knife and cut again for smaller pieces. Pick up the whole portion together.");
             Destroy(gameObject);
             return true;
         }
@@ -176,6 +232,11 @@ namespace HouseSim.Kitchen
             ConsumeServing();
             session.ChangeEnergy(energy);
             session.Notify(DisplayName + ": " + (energy >= 0 ? "+" : "") + energy + " energy. Energy " + session.Energy + "/100.");
+            // The consumed food is destroyed this frame. Keep each bite and its
+            // following reaction on the player's mouth, using the food's benefit
+            // before the shared energy meter clamps it at zero or full.
+            KitchenAudioEmitter.Get(session.mouthAnchor ? session.mouthAnchor : session.transform)
+                .PlayEatingSequence(energy);
             return true;
         }
 
@@ -260,11 +321,15 @@ namespace HouseSim.Kitchen
 
         private void UpdateAppearance()
         {
-            if (definition == null || visualRenderers == null) return;
+            if (definition == null) return;
+            if (!modelVisual) modelVisual = GetComponent<KitchenFoodModelVisual>();
+            if (modelVisual && modelVisual.Apply(this, contaminatedFood)) return;
+            if (visualRenderers == null) return;
             if (colors == null) colors = new MaterialPropertyBlock();
             Color color = State == FoodState.Raw ? definition.rawColor : State == FoodState.Good ? definition.cookedColor : definition.burntColor;
-            if (IsProduce) color = Color.Lerp(definition.rawColor * 0.45f, definition.rawColor, WashProgress);
+            if (IsProduce) color = Color.Lerp(definition.rawColor * 0.45f, definition.rawColor, displayedWash);
             if (definition.kind == FoodKind.Salad && IsDirty) color = Color.Lerp(definition.cookedColor, new Color(0.3f, 0.19f, 0.06f), 0.5f);
+            if (contaminatedFood) color = Color.Lerp(color, new Color(0.24f, 0.18f, 0.10f), 0.45f);
             color.a = 1f;
             foreach (var renderer in visualRenderers)
             {

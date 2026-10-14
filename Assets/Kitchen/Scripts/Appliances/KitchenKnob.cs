@@ -29,6 +29,7 @@ namespace HouseSim.Kitchen
             ? Pivot.parent.TransformDirection(baseRotation * localAxis.normalized)
             : baseRotation * localAxis.normalized;
         public bool IsDragging { get; private set; }
+        public event System.Action<bool> DragStateChanged;
         [SerializeField] private float currentValue;
 
         private XRSimpleInteractable interactable;
@@ -37,6 +38,7 @@ namespace HouseSim.Kitchen
         private Vector3 previousVector;
         private Quaternion previousHandRotation;
         private bool initialized;
+        private KitchenAudioEmitter audioEmitter;
 
         private void Awake()
         {
@@ -57,7 +59,11 @@ namespace HouseSim.Kitchen
             interactable.selectExited.RemoveListener(OnRelease);
         }
 
-        private void OnDisable() => EndDrag();
+        private void OnDisable()
+        {
+            EndDrag();
+            if (audioEmitter) audioEmitter.StopAll();
+        }
 
         private void OnGrab(SelectEnterEventArgs args)
         {
@@ -105,8 +111,15 @@ namespace HouseSim.Kitchen
 
         public void BeginDrag(Vector3 worldPosition)
         {
+            if (!isActiveAndEnabled || IsDragging) return;
             IsDragging = true;
             previousVector = Vector3.ProjectOnPlane(worldPosition - Pivot.position, WorldAxis);
+            // Pause the timer before starting the winding loop, so the two recordings
+            // never overlap even for a stationary press or an immediate release.
+            DragStateChanged?.Invoke(true);
+            if (!audioEmitter) audioEmitter = KitchenAudioEmitter.Get(this);
+            if (GetComponentInParent<KitchenOven>()) audioEmitter.SetLoop(KitchenSound.OvenSpin, true);
+            else if (GetComponentInParent<KitchenHob>()) audioEmitter.PlayCue(KitchenSound.StoveTurn);
         }
 
         public void DragTo(Vector3 worldPosition)
@@ -124,14 +137,18 @@ namespace HouseSim.Kitchen
         public void DragByDegrees(float clockwiseDegrees)
         {
             if (Mathf.Abs(angleRange) < 0.001f) return;
-            // Apply deltas to the current value so the oven can wind this dial back while it is held.
+            // Audio belongs to the press/release gesture, not to individual motion
+            // samples. Automatic SetValue updates also remain silent.
             SetValue(currentValue + clockwiseDegrees / angleRange * (maxValue - minValue));
         }
 
         public void EndDrag()
         {
             hand = null;
+            bool wasDragging = IsDragging;
             IsDragging = false;
+            if (audioEmitter) audioEmitter.SetLoop(KitchenSound.OvenSpin, false);
+            if (wasDragging) DragStateChanged?.Invoke(false);
         }
 
         public void Adjust(float delta) => SetValue(currentValue + delta);

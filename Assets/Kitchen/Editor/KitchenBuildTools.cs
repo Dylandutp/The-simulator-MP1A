@@ -15,7 +15,8 @@ namespace HouseSim.Kitchen.Editor
         static readonly string[] Scenes={"Assets/Kitchen/Scenes/KitchenEntry.unity","Assets/Scenes/MasterScene.unity","Assets/Kitchen/Scenes/Kitchen.unity"};
         public static void ValidateEditor()
         {
-            KitchenSceneBuilder.Build();
+            // A saved scene may contain intentional manual layout edits.
+            if (!File.Exists(Scenes[2])) KitchenSceneBuilder.Build();
             KitchenFoodChecks.Run();
             Preview();
         }

@@ -26,6 +26,7 @@ namespace HouseSim.Kitchen.Editor
         private static readonly List<string> Passed = new List<string>();
         private static readonly List<string> Observations = new List<string>();
         private static int phase;
+        private static bool mechanicsComplete;
         private static int spawnNumber;
         private static double started;
         private static double trashStarted;
@@ -167,7 +168,7 @@ namespace HouseSim.Kitchen.Editor
             try
             {
                 if (runtimeError != null) throw new InvalidOperationException("Runtime error during checks: " + runtimeError);
-                if (EditorApplication.timeSinceStartup - started > 120) throw new TimeoutException("Kitchen scenes did not finish the checks in 120 seconds.");
+                if (EditorApplication.timeSinceStartup - started > 180) throw new TimeoutException("Kitchen scenes did not finish the checks in 180 seconds.");
                 switch (phase)
                 {
                     case 0:
@@ -208,6 +209,14 @@ namespace HouseSim.Kitchen.Editor
                         if (Time.frameCount < recoveryQueuedFrame + 2) return;
                         FinishHudAndRecoveryCheck(); phase++; break;
                     case 17:
+                        mechanicsComplete = false;
+                        session.StartCoroutine(KitchenMechanicsChecks.Run(Assert, () => mechanicsComplete = true));
+                        phase++;
+                        break;
+                    case 18:
+                        if (mechanicsComplete) phase++;
+                        break;
+                    case 19:
                         retainedInventory = session.inventory;
                         retainedEnergyResource = session.energyResource;
                         retainedFood = Spawn("Steak");
@@ -217,13 +226,13 @@ namespace HouseSim.Kitchen.Editor
                         Object.Destroy(session);
                         phase++;
                         break;
-                    case 18:
+                    case 20:
                         if (session) return;
                         Assert(retainedInventory && retainedFood && retainedInventory.GetAmount(retainedResource) == retainedBefore + 1, "inventory/ledger-survives-kitchen-session-destroy");
                         Object.Destroy(retainedFood.gameObject);
                         phase++;
                         break;
-                    case 19:
+                    case 21:
                         if (retainedFood) return;
                         Assert(retainedInventory.GetAmount(retainedResource) == retainedBefore, "inventory/food-destruction-debits-retained-ledger-without-session");
                         retainedInventory.SetAmount(retainedEnergyResource, originalEnergy);
@@ -280,14 +289,14 @@ namespace HouseSim.Kitchen.Editor
             int tomatoPreparedBefore = session.inventory.GetAmount(tomato.definition.preparedResource);
             Assert(!bowl.TryAddIngredient(tomato), "salad/" + clean + "/reject-unchopped");
             Assert(tomato.Claim(), "salad/" + clean + "/claim-tomato");
-            if (clean) tomato.Wash(3f);
+            if (clean) tomato.Wash(.1f);
             tomato = ChopAndFind(tomato);
             Assert(tomato.IsDirty != clean, "salad/" + clean + "/washing-survives-chop");
             Assert(bowl.TryAddIngredient(tomato) && !bowl.TryAddIngredient(tomato), "salad/" + clean + "/ingredient-once");
             Assert(!bowl.Mix(), "salad/" + clean + "/requires-two-kinds");
             KitchenFood lettuce = Spawn("Lettuce");
             Assert(lettuce.Claim(), "salad/" + clean + "/claim-lettuce");
-            lettuce.Wash(3f);
+            lettuce.Wash(.1f);
             lettuce = ChopAndFind(lettuce);
             Assert(bowl.TryAddIngredient(lettuce), "salad/" + clean + "/add-second-kind");
             ResourceData saladResource = bowl.saladPrefab.GetComponent<KitchenFood>().CurrentResource;
@@ -456,35 +465,41 @@ namespace HouseSim.Kitchen.Editor
             bool wasKinematic = body.isKinematic;
             body.isKinematic = true;
             pan.transform.SetPositionAndRotation(hob.burner.position, hob.burner.rotation);
+            KitchenPanHeat heat = pan.GetComponent<KitchenPanHeat>();
+            heat.Tick(0f); heat.Tick(30f);
+            void Step(float seconds) { hob.Tick(seconds); heat.Tick(seconds); }
             KitchenFood steak = Spawn("Steak");
-            steak.transform.position = pan.cookingSurface.position;
+            steak.transform.position = pan.cookingSurface.TransformPoint(Vector3.up * pan.supportedLocalHeight);
             Physics.SyncTransforms();
-            SetNormalized(hob.powerKnob, .25f); hob.Tick(4);
+            SetNormalized(hob.powerKnob, .25f); Step(20f);
+            Assert(heat.IsHot && Near(steak.CookSeconds, 0), "hob/quarter-power-preheats-before-cooking");
+            Step(4);
             Assert(Near(steak.CookSeconds, 2), "hob/quarter-power-half-speed");
-            SetNormalized(hob.powerKnob, .5f); hob.Tick(4);
+            SetNormalized(hob.powerKnob, .5f); Step(4);
             Assert(Near(steak.CookSeconds, 6), "hob/half-power-normal-speed");
-            SetNormalized(hob.powerKnob, .625f); hob.Tick(.8f);
+            SetNormalized(hob.powerKnob, .625f); Step(.8f);
             Assert(Near(steak.CookSeconds, 7) && Mathf.Abs(hob.powerKnob.NormalizedValue - .625f) < .0001f, "hob/fractional-power-has-proportional-unquantized-heat");
-            SetNormalized(hob.powerKnob, 1f); hob.Tick(.5f);
+            SetNormalized(hob.powerKnob, 1f); Step(.5f);
             Assert(Near(steak.CookSeconds, 8) && steak.State == FoodState.Good, "hob/full-power-double-speed-and-good-steak");
-            steak.SetDesktopHeld(true); hob.Tick(10);
+            steak.SetDesktopHeld(true); Step(10);
             Assert(Near(steak.CookSeconds, 8), "hob/held-steak-not-heated");
             steak.SetDesktopHeld(false);
             KitchenDesktopHeld held = pan.GetComponent<KitchenDesktopHeld>();
             if (!held) held = pan.gameObject.AddComponent<KitchenDesktopHeld>();
-            held.SetHeld(true); hob.Tick(10);
-            Assert(Near(steak.CookSeconds, 8), "hob/held-pan-not-heated");
+            held.SetHeld(true); Step(5);
+            Assert(Near(steak.CookSeconds, 18) && heat.IsHot && !heat.Heating, "hob/held-pan-retains-normal-cooking-heat");
             held.SetHeld(false);
             pan.transform.position += Vector3.right * 2f;
-            Physics.SyncTransforms(); hob.Tick(10);
-            Assert(Near(steak.CookSeconds, 8), "hob/pan-away-from-burner-not-heated");
+            Physics.SyncTransforms(); Step(10);
+            Assert(Near(steak.CookSeconds, 18) && !heat.IsHot, "hob/steak-away-from-pan-not-heated");
             pan.transform.position = hob.burner.position;
             Physics.SyncTransforms();
-            hob.powerKnob.SetValue(0); hob.Tick(10);
-            Assert(Near(steak.CookSeconds, 8), "hob/off-switch-stops-heating");
-            SetNormalized(hob.powerKnob, 1f); hob.Tick(5);
-            Assert(Near(steak.CookSeconds, 18) && steak.State == FoodState.Burnt, "hob/continued-cooking-burns-steak");
+            hob.powerKnob.SetValue(0); Step(10);
+            Assert(Near(steak.CookSeconds, 18), "hob/cooled-pan-stops-cooking");
+            SetNormalized(hob.powerKnob, 1f); Step(6);
+            Assert(Near(steak.CookSeconds, 20) && steak.State == FoodState.Burnt, "hob/reheat-then-continued-cooking-burns-steak");
             hob.powerKnob.SetValue(0);
+            Step(15f);
             pan.transform.SetPositionAndRotation(oldPosition, oldRotation);
             body.isKinematic = wasKinematic;
             steak.Discard();
@@ -511,6 +526,9 @@ namespace HouseSim.Kitchen.Editor
             steakBody.angularVelocity = Vector3.zero;
             Physics.SyncTransforms();
             SetNormalized(gravityHob.powerKnob, .5f);
+            // Temperature timing is checked separately; this test drops into a preheated physical pan.
+            gravityHob.Tick(10f);
+            pan.GetComponent<KitchenPanHeat>().Tick(10f);
             gravityHob.enabled = true;
             gravityStarted = Time.time;
         }
@@ -630,6 +648,8 @@ namespace HouseSim.Kitchen.Editor
             InputSteps.Add(() =>
             {
                 Assert(Near(angle(), closed), prefix + "E-and-wheel-do-not-toggle");
+                var hover=Object.FindFirstObjectByType<KitchenContextHUD>();
+                Assert(hover && hover.Current && !string.IsNullOrEmpty(hover.DisplayedTitle),prefix+"pointing-shows-context-HUD");
                 QueuePointer(inputPointer, true);
             });
             InputSteps.Add(() =>
@@ -825,6 +845,8 @@ namespace HouseSim.Kitchen.Editor
             Assert(grid.transform.childCount == children, "grid/cannot-duplicate-foundation");
             grid.Select(1); grid.Place(0);
             Assert(grid.HasEquipment(0), "grid/equipment-after-foundation");
+            var built=grid.transform.Find(grid.modulePrefabs[1].name+" - Tile 1");
+            Assert(built && Quaternion.Angle(built.rotation,grid.cells[0].rotation*Quaternion.Euler(0,180,0))<.1f,"grid/build-one-equipment-reversed");
             children = grid.transform.childCount;
             grid.Place(0);
             Assert(grid.transform.childCount == children, "grid/cannot-stack-equipment");
@@ -833,6 +855,7 @@ namespace HouseSim.Kitchen.Editor
 
         private static void BeginHudAndRecoveryCheck()
         {
+            CheckPolishedPresentation();
             energyHud = Object.FindFirstObjectByType<KitchenEnergyHUD>();
             recovery = Object.FindFirstObjectByType<KitchenPlayerRecovery>();
             Assert(energyHud && energyHud.DisplayCanvas && energyHud.session == session && energyHud.viewCamera, "hud/shared-energy-display-configured");
@@ -865,6 +888,44 @@ namespace HouseSim.Kitchen.Editor
             if (motor) motor.enabled = recoveryMotorWasEnabled;
             Physics.SyncTransforms();
             recoveryQueuedFrame = Time.frameCount;
+        }
+
+        private static void CheckPolishedPresentation()
+        {
+            var context=Object.FindFirstObjectByType<KitchenContextHUD>();
+            Assert(context && context.DisplayCanvas,"context/initialized");
+            var panel=context.DisplayCanvas.transform.Find("Inspect card") as RectTransform;
+            Assert(panel && panel.anchorMin==new Vector2(.5f,0) && panel.anchoredPosition.y>0,"context/bottom-view-position");
+            Assert(context.DisplayCanvas.GetComponent<CanvasGroup>().blocksRaycasts==false,"context/does-not-block-pointer");
+            var fridge=Object.FindFirstObjectByType<KitchenFridge>();
+            fridge.door.SetOpenImmediately(false); Physics.SyncTransforms();
+            Vector3 target=fridge.door.Pivot.TransformPoint(new Vector3(.54f,1.06f,-.065f));
+            Ray ray=new Ray(target-fridge.transform.forward,fridge.transform.forward);
+            var info=context.InspectRay(ray,out _);
+            Assert(info && info.GetComponent<KitchenFridge>()==fridge,"context/controller-ray-resolves-device");
+            var blocker=GameObject.CreatePrimitive(PrimitiveType.Cube);
+            blocker.transform.position=ray.GetPoint(.3f); blocker.transform.localScale=Vector3.one*.2f; Physics.SyncTransforms();
+            Assert(!context.InspectRay(ray,out _),"context/occluders-prevent-through-wall-help");
+            Object.Destroy(blocker);
+            Assert(!context.InspectRay(new Ray(new Vector3(-20,20,-20),Vector3.up),out _),"context/empty-ray-clears-target");
+            session.RefreshDisplays();
+            var text=session.resourceText;
+            Assert(text && text.text.Contains("Chicken:") && text.transform.position.x>0,"inventory/right-wall-live-counts");
+            Assert(Vector3.Dot(-text.transform.forward,Vector3.left)>.99f && text.transform.localPosition.z<-.04f && text.transform.localScale.x>0,"inventory/front-facing-and-clear-of-board");
+            Assert(!Object.FindObjectsByType<Transform>(FindObjectsSortMode.None).Any(t=>t.name=="Stock display panel" || t.name=="Hob status panel" || t.name=="Wash progress panel" || t.name=="Bowl state panel"),"context/station-blackboards-removed");
+            var lights=Object.FindFirstObjectByType<KitchenPendantLights>();
+            Assert(lights && lights.lights.Length==3 && lights.lights.All(l=>l && l.enabled),"lights/three-warm-lights-start-on");
+            var action=lights.GetComponentInChildren<KitchenAction>();
+            Assert(action && action.action.GetPersistentEventCount()==1 && lights.transform.position.x>0,"lights/right-wall-switch-wired");
+            action.Invoke();
+            Assert(!lights.IsOn && lights.lights.All(l=>!l.enabled),"lights/switch-turns-all-off");
+            lights.Toggle();
+            Assert(lights.IsOn && lights.lights.All(l=>l.enabled),"lights/switch-restores-all-on");
+            var grid=Object.FindFirstObjectByType<KitchenGridPlacement>();
+            Assert(grid.equipmentYawDegrees.Length==grid.cells.Length && Near(grid.equipmentYawDegrees[0],180) && Near(grid.equipmentYawDegrees[1],180) && Near(grid.equipmentYawDegrees[2],0),"grid/only-build-one-and-two-reversed");
+            grid.Select(0); grid.Place(1); grid.Select(2); grid.Place(1);
+            var built=grid.transform.Find(grid.modulePrefabs[2].name+" - Tile 2");
+            Assert(built && Quaternion.Angle(built.rotation,grid.cells[1].rotation*Quaternion.Euler(0,180,0))<.1f,"grid/build-two-equipment-reversed");
         }
 
         private static void FinishHudAndRecoveryCheck()

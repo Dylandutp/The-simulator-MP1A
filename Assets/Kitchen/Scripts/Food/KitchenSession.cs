@@ -132,19 +132,7 @@ namespace HouseSim.Kitchen
         public void Tutorial(string id, string message, Vector3 location)
         {
             if (string.IsNullOrEmpty(id) || !shownTutorials.Add(id)) return;
-            var popup = new GameObject("Kitchen Tutorial - " + id);
-            popup.transform.position = location + Vector3.up * 0.22f;
-            var text = popup.AddComponent<TextMesh>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            popup.GetComponent<MeshRenderer>().sharedMaterial = text.font.material;
-            text.text = message;
-            text.fontSize = 48;
-            text.characterSize = 0.012f;
-            text.anchor = TextAnchor.MiddleCenter;
-            text.alignment = TextAlignment.Center;
-            text.color = new Color(1f, 0.94f, 0.65f);
-            popup.AddComponent<KitchenTutorialBillboard>();
-            Destroy(popup, 7f);
+            // Kept for existing appliance callbacks; KitchenContextHUD now owns explanations.
         }
 
         public KitchenFood SpawnFood(GameObject prefab, Transform point, bool claimed = false)

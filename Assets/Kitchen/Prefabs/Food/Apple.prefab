@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5879621371337108363}
   - component: {fileID: 6578292245470403991}
   - component: {fileID: 3609158363624435730}
+  - component: {fileID: 4253719589658023653}
   m_Layer: 0
   m_Name: Apple
   m_TagString: Untagged
@@ -248,6 +249,21 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 0}
   minimumY: -2.5
   maximumDistance: 25
+--- !u!114 &4253719589658023653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2667595969568457026}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587d39278f3c640449ab0c87889cf57b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenItemInfo
+  title: Food
+  description: Prepare before eating. Bring a meal to your mouth + trigger, or hold
+    it and press F on PC.
 --- !u!1 &5289632469458392092
 GameObject:
   m_ObjectHideFlags: 0

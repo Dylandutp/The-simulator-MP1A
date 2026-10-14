@@ -30,7 +30,7 @@ namespace HouseSim.Kitchen
             lastWashedAt[food] = Time.fixedTime;
             food.Wash(Time.fixedDeltaTime);
             RefreshLabel();
-            KitchenSession.Instance?.Tutorial("wash", "Turn on the tap.\nRinse whole or chopped produce for 3 seconds.", transform.position);
+            KitchenSession.Instance?.Tutorial("wash", "Turn on the tap.\nRinse whole or chopped produce for 0.1 seconds.", transform.position);
             if (lastWashedAt.Count > 64)
             {
                 var stale = new List<KitchenFood>();
@@ -46,7 +46,7 @@ namespace HouseSim.Kitchen
             bool running = faucet != null && faucet.Value;
             if (lastFood == null || lastFood.IsConsumed)
             {
-                label.text = running ? "RINSE FRUIT & VEGETABLES\n3 SECONDS TO WASH" : "WASH FRUIT & VEGETABLES\nTURN THE TAP ON";
+                label.text = running ? "RINSE FRUIT & VEGETABLES\n0.1 SECOND TO WASH" : "WASH FRUIT & VEGETABLES\nTURN THE TAP ON";
                 return;
             }
             string foodName = lastFood.definition != null ? lastFood.definition.kind.ToString().ToUpperInvariant() : "PRODUCE";
@@ -57,7 +57,7 @@ namespace HouseSim.Kitchen
                 return;
             }
             string activity = !running ? "PAUSED - TAP OFF" : Time.time - lastSeenAt > 0.2f ? "PAUSED - RETURN TO WATER" : "RINSING";
-            label.text = foodName + " - " + percent + "% (" + (lastFood.WashProgress * 3f).ToString("0.0") + "/3s)\n" + activity;
+            label.text = foodName + " - " + percent + "% (" + (lastFood.WashProgress * 0.1f).ToString("0.0") + "/0.1s)\n" + activity;
         }
     }
 }

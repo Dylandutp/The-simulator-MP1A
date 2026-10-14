@@ -284,6 +284,7 @@ GameObject:
   - component: {fileID: 8968711055563074377}
   - component: {fileID: 45843943529307243}
   - component: {fileID: 2810973334664563728}
+  - component: {fileID: 8533235471056683860}
   m_Layer: 0
   m_Name: ChoppedApple
   m_TagString: Untagged
@@ -520,3 +521,18 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 0}
   minimumY: -2.5
   maximumDistance: 25
+--- !u!114 &8533235471056683860
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6710032450208461611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587d39278f3c640449ab0c87889cf57b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenItemInfo
+  title: Food
+  description: Prepare before eating. Bring a meal to your mouth + trigger, or hold
+    it and press F on PC.

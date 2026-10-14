@@ -22,7 +22,7 @@ namespace HouseSim.Kitchen
                     change = state == FoodState.Raw ? -15 : state == FoodState.Good ? 30 : -20;
                     return true;
                 case FoodKind.Steak:
-                    change = state == FoodState.Raw ? 5 : state == FoodState.Good ? 25 : -15;
+                    change = dirty ? -15 : state == FoodState.Raw ? 5 : state == FoodState.Good ? 25 : -15;
                     return true;
                 case FoodKind.Salad:
                     change = dirty ? -15 : 20;
@@ -36,7 +36,7 @@ namespace HouseSim.Kitchen
         public static float AdvanceWash(float progress, float seconds)
         {
             if (seconds <= 0f || float.IsNaN(seconds) || float.IsInfinity(seconds)) return progress;
-            float next = Mathf.Clamp01(progress + seconds / 3f);
+            float next = Mathf.Clamp01(progress + seconds / 0.1f);
             // Compensate only for the float accumulation error of fixed-time wash ticks.
             return next >= 0.999999f ? 1f : next;
         }

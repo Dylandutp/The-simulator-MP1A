@@ -13,6 +13,7 @@ namespace HouseSim.Kitchen
         public Renderer[] cellIndicators = Array.Empty<Renderer>();
         [Tooltip("Offset from each grid cell for equipment; foundations use the cell pose.")]
         public Vector3 equipmentOffset;
+        public float[] equipmentYawDegrees = Array.Empty<float>();
         public TextMesh label;
         [SerializeField] int selected;
         GameObject[] foundations = Array.Empty<GameObject>();
@@ -73,7 +74,8 @@ namespace HouseSim.Kitchen
 
             Transform cell = cells[cellIndex];
             Vector3 position = cell.position + (selected == 0 ? Vector3.zero : cell.TransformVector(equipmentOffset));
-            GameObject instance = Instantiate(modulePrefabs[selected], position, cell.rotation, transform);
+            float yaw = selected != 0 && cellIndex < equipmentYawDegrees.Length ? equipmentYawDegrees[cellIndex] : 0;
+            GameObject instance = Instantiate(modulePrefabs[selected], position, cell.rotation * Quaternion.Euler(0,yaw,0), transform);
             instance.name = modulePrefabs[selected].name + " - Tile " + (cellIndex + 1);
             instance.SetActive(true);
             if (selected == 0) foundations[cellIndex] = instance;

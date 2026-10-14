@@ -31,6 +31,7 @@ namespace HouseSim.Kitchen
         private Vector3 lastHandVector;
         private float currentAngle;
         private bool initialized;
+        private KitchenAudioEmitter audioEmitter;
 
         private void Awake()
         {
@@ -51,7 +52,13 @@ namespace HouseSim.Kitchen
             interactable.selectExited.RemoveListener(OnRelease);
         }
 
-        private void OnDisable() => EndDrag();
+        private void OnEnable() => RefreshWaterAudio();
+
+        private void OnDisable()
+        {
+            EndDrag();
+            if (audioEmitter) audioEmitter.StopAll();
+        }
 
         private void OnGrab(SelectEnterEventArgs args)
         {
@@ -118,6 +125,14 @@ namespace HouseSim.Kitchen
             if (initialized && pivot) pivot.localRotation = baseRotation * Quaternion.AngleAxis(currentAngle, localAxis.normalized);
             if (activeVisual) activeVisual.SetActive(Value);
             if (label) label.text = labelPrefix + "\n" + (Value ? "ON" : "OFF");
+            RefreshWaterAudio();
+        }
+
+        private void RefreshWaterAudio()
+        {
+            if (!initialized || !isActiveAndEnabled) return;
+            if (!audioEmitter) audioEmitter = KitchenAudioEmitter.Get(this);
+            audioEmitter.SetLoop(KitchenSound.TapWater, Value);
         }
     }
 }

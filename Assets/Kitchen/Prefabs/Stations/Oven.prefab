@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 216349224398859249}
   - component: {fileID: 1738889061434474209}
   - component: {fileID: 7825101811984404706}
+  - component: {fileID: 7313818974155428726}
   m_Layer: 0
   m_Name: Oven
   m_TagString: Untagged
@@ -53,8 +54,6 @@ Transform:
   - {fileID: 6343439387157519773}
   - {fileID: 27774192150071160}
   - {fileID: 6163270629271472096}
-  - {fileID: 3096127989015788979}
-  - {fileID: 3366874166807589921}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &1738889061434474209
@@ -172,6 +171,21 @@ MonoBehaviour:
   chamberHalfExtents: {x: 0.48, y: 0.21, z: 0.34}
   label: {fileID: 0}
   heatLight: {fileID: 4048538982673848028}
+--- !u!114 &7313818974155428726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 51355606046981411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587d39278f3c640449ab0c87889cf57b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenItemInfo
+  title: Oven
+  description: 'Place chicken inside and close the door. Turn the dial: 25-30 s for
+    golden chicken.'
 --- !u!1 &102931965271852557
 GameObject:
   m_ObjectHideFlags: 0
@@ -2628,56 +2642,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &4100772347391728965
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3096127989015788979}
-  - component: {fileID: 8830756850153927152}
-  m_Layer: 0
-  m_Name: oven tutorial
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3096127989015788979
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4100772347391728965}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.5, z: -0.65}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 216349224398859249}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8830756850153927152
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4100772347391728965}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5e103d106f98104b924f767417838f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenStationHint
-  id: oven
-  message: 'Place chicken on the rack. Close the door.
-
-    Turn the timer. Opening
-    pauses cooking.'
-  distance: 1.35
 --- !u!1 &4491576668686132915
 GameObject:
   m_ObjectHideFlags: 0
@@ -3001,56 +2965,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &5216757919736109738
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3366874166807589921}
-  - component: {fileID: 4155716571119683937}
-  m_Layer: 0
-  m_Name: chicken tutorial
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3366874166807589921
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5216757919736109738}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.4, y: 1.7, z: -0.5}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 216349224398859249}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4155716571119683937
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5216757919736109738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5e103d106f98104b924f767417838f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenStationHint
-  id: chicken
-  message: 'Pale chicken: -15 energy. Golden: +30.
-
-    Blackened: -20. Check the
-    colour before eating.'
-  distance: 1.35
 --- !u!1 &5519565717866154104
 GameObject:
   m_ObjectHideFlags: 0

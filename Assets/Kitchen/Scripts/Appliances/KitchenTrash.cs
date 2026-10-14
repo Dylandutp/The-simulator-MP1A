@@ -6,7 +6,9 @@ namespace HouseSim.Kitchen
     {
         public TextMesh label;
         private int discardedCount;
+        private KitchenAudioEmitter audioEmitter;
 
+        private void Awake() => audioEmitter = KitchenAudioEmitter.Get(this);
         private void Start() => Refresh();
         private void OnTriggerEnter(Collider other) => TryDiscard(other);
         private void OnTriggerStay(Collider other) => TryDiscard(other);
@@ -18,6 +20,7 @@ namespace HouseSim.Kitchen
             food.Discard();
             if (!food.IsConsumed) return;
             discardedCount++;
+            audioEmitter.PlayCue(KitchenSound.Trash);
             Refresh();
         }
 

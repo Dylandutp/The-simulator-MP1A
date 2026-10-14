@@ -9,13 +9,10 @@ namespace HouseSim.Kitchen
         public GameObject[] foodPrefabs;
         public Transform[] slots;
         public TextMesh label;
-        public float autoRestockMinSeconds = 12f;
-        public float autoRestockMaxSeconds = 20f;
         private KitchenStockItem[] stock;
         private int[] prefabOrder;
-        private readonly List<int> availableSlots = new List<int>();
         private readonly Dictionary<GameObject, Bounds> prefabBounds = new Dictionary<GameObject, Bounds>();
-        private float nextAutoRestock;
+        private bool closedSinceLastOpening;
         private float nextStatusUpdate;
         private int lastDisplayedCount = -1;
 
@@ -24,7 +21,7 @@ namespace HouseSim.Kitchen
             EnsureStockLayout();
             if (door) door.stateChanged.AddListener(OnDoorChanged);
             Refill();
-            ScheduleAutoRestock();
+            closedSinceLastOpening = door && door.OpenAmount <= 0.01f;
         }
 
         private void OnDestroy()
@@ -32,18 +29,28 @@ namespace HouseSim.Kitchen
             if (door) door.stateChanged.RemoveListener(OnDoorChanged);
         }
 
-        private void OnDoorChanged(bool open) => Refill();
+        private void OnDoorChanged(bool open) => ObserveDoorCycle();
+
+        private void ObserveDoorCycle()
+        {
+            if (!door) return;
+            // KitchenDoor's open/closed event has a much smaller hysteresis than a
+            // deliberate restocking cycle. Check its continuous position as well:
+            // near fully closed arms one refill, opening ~16 degrees consumes it.
+            if (door.OpenAmount <= 0.01f) closedSinceLastOpening = true;
+            else if (closedSinceLastOpening && door.OpenAmount >= 0.15f)
+            {
+                closedSinceLastOpening = false;
+                Refill();
+            }
+        }
 
         private void Update()
         {
+            ObserveDoorCycle();
             if (Time.time < nextStatusUpdate) return;
             nextStatusUpdate = Time.time + 0.15f;
             ReleaseTakenItems();
-            if (Time.time >= nextAutoRestock)
-            {
-                RestockOneEmptySlot();
-                ScheduleAutoRestock();
-            }
             RefreshLabel();
         }
 
@@ -108,30 +115,13 @@ namespace HouseSim.Kitchen
             Physics.SyncTransforms();
         }
 
-        private void RestockOneEmptySlot()
-        {
-            if (stock == null || slots == null || foodPrefabs == null || foodPrefabs.Length == 0) return;
-            availableSlots.Clear();
-            Physics.SyncTransforms();
-            for (int i = 0; i < slots.Length; i++)
-                if (!stock[i] && slots[i] && foodPrefabs[prefabOrder[i]] && !SlotIsOccupied(i)) availableSlots.Add(i);
-            if (availableSlots.Count > 0) SpawnSlot(availableSlots[Random.Range(0, availableSlots.Count)]);
-        }
-
-        private void ScheduleAutoRestock()
-        {
-            float minimum = Mathf.Max(0.1f, autoRestockMinSeconds);
-            float maximum = Mathf.Max(minimum, autoRestockMaxSeconds);
-            nextAutoRestock = Time.time + Random.Range(minimum, maximum);
-        }
-
         private void RefreshLabel()
         {
             int count = CountStock();
             if (!label || count == lastDisplayedCount) return;
             lastDisplayedCount = count;
             label.text = "FRIDGE STOCK  " + count + " / " + (slots == null ? 0 : slots.Length)
-                + "\nOPEN / CLOSE TO REFILL\nAUTO DELIVERY: " + autoRestockMinSeconds.ToString("0") + "-" + autoRestockMaxSeconds.ToString("0") + " s";
+                + "\nCLOSE FULLY, THEN OPEN TO REFILL";
         }
 
         public int CountStock()

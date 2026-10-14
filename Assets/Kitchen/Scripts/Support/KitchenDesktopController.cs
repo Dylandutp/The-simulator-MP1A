@@ -40,6 +40,8 @@ namespace HouseSim.Kitchen
         float yaw;
         float pitch;
         float fallSpeed;
+        float panTossStarted = -1f;
+        float panTossHeight;
         bool activeDesktop;
         bool initialized;
         string focusedLabel = "";
@@ -127,6 +129,7 @@ namespace HouseSim.Kitchen
             Keyboard keyboard = Keyboard.current;
             Mouse mouse = Mouse.current;
             if (keyboard == null || mouse == null) return;
+            if (keyboard.f1Key.wasPressedThisFrame) showHelp = !showHelp;
             if (keyboard.escapeKey.wasPressedThisFrame)
             {
                 EndControlDrag();
@@ -155,7 +158,20 @@ namespace HouseSim.Kitchen
             }
             if (keyboard.eKey.wasPressedThisFrame && hasTarget) Interact(hit.collider);
             if (keyboard.fKey.wasPressedThisFrame && heldFood != null) heldFood.TryConsume();
-            if (keyboard.cKey.wasPressedThisFrame && heldFood != null) heldFood.Chop();
+            if (keyboard.cKey.wasPressedThisFrame && heldGrab != null && hasTarget)
+            {
+                var knife = heldGrab.GetComponent<KitchenKnife>();
+                if (knife) knife.TryDesktopChop(hit.collider.GetComponentInParent<KitchenFood>());
+            }
+            if (keyboard.spaceKey.wasPressedThisFrame && heldGrab != null)
+            {
+                var pan = heldGrab.GetComponent<KitchenPan>();
+                if (pan && pan.TryToss(keyboard.shiftKey.isPressed ? 1.4f : .5f))
+                {
+                    panTossStarted = Time.time;
+                    panTossHeight = keyboard.shiftKey.isPressed ? .12f : .07f;
+                }
+            }
             if (keyboard.rKey.wasPressedThisFrame && heldBody != null) LevelHeldObject();
 
             float wheel = mouse.scroll.ReadValue().y;
@@ -215,10 +231,22 @@ namespace HouseSim.Kitchen
             return false;
         }
 
+        public bool TryGetPointedCollider(out Collider collider)
+        {
+            collider = null;
+            if (TryAim(out var hit)) { collider=hit.collider; return true; }
+            return false;
+        }
+
         bool IsOwnCollider(Collider collider)
         {
             if (collider.transform.IsChildOf(playerRoot)) return true;
-            return heldGrab != null && collider.transform.IsChildOf(heldGrab.transform);
+            if (heldGrab == null) return false;
+            if (collider.transform.IsChildOf(heldGrab.transform)) return true;
+            // A supported steak is one held assembly with its pan, including during a small toss.
+            // Treating it as an obstacle feeds the previous food pose back into the pan's reach.
+            var pan = heldGrab.GetComponent<KitchenPan>();
+            return pan && pan.ContainsSupportedFood(collider.GetComponentInParent<KitchenFood>());
         }
 
         static Vector2 PointerPosition(Mouse mouse)
@@ -413,6 +441,7 @@ namespace HouseSim.Kitchen
             heldMarker = grab.GetComponent<KitchenDesktopHeld>();
             if (heldMarker == null) heldMarker = grab.gameObject.AddComponent<KitchenDesktopHeld>();
             heldMarker.SetHeld(true);
+            heldGrab.GetComponent<KitchenPan>()?.BeginCarry();
             heldFood?.SetDesktopHeld(true);
             heldWasKinematic = body.isKinematic;
             heldUsedGravity = body.useGravity;
@@ -425,19 +454,31 @@ namespace HouseSim.Kitchen
             body.isKinematic = true;
             body.useGravity = false;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
-            heldViewRotation = Quaternion.Inverse(viewCamera.transform.rotation) * body.rotation;
-            keepHeldUpright = false;
+            KitchenKnife knife = grab.GetComponent<KitchenKnife>();
+            KitchenPanGrip panGrip = grab.GetComponent<KitchenPanGrip>();
+            if (knife) knife.PrepareDesktopGrip(viewCamera.transform);
+            else if (panGrip) panGrip.PrepareDesktopGrip(viewCamera.transform);
+            keepHeldUpright = knife != null || panGrip != null;
+            Quaternion gripView = keepHeldUpright ? Quaternion.Euler(0f, viewCamera.transform.eulerAngles.y, 0f) : viewCamera.transform.rotation;
+            heldViewRotation = Quaternion.Inverse(gripView) * body.rotation;
             heldRadius = Mathf.Clamp(target.bounds.extents.magnitude * 0.45f, 0.055f, 0.2f);
             lastHeldPosition = body.position;
             heldVelocity = Vector3.zero;
-            KitchenSession.Instance?.Tutorial("desktop_grab", "Desktop: left click releases. F eats. C cuts. R levels a tipped tool.\nScroll changes held reach. Set objects down before dragging handles or knobs.", grab.transform.position + Vector3.up * 0.2f);
+            KitchenSession.Instance?.Tutorial("desktop_grab", "Desktop: click releases. F eats. Hold knife, aim at produce + C to cut.\nHold pan + Space to toss; Shift + Space overthrows. R levels tools.", grab.transform.position + Vector3.up * 0.2f);
         }
 
         void FixedUpdate()
         {
             if (!activeDesktop || heldBody == null || heldGrab == null) return;
+            if (heldGrab.TryGetComponent<KitchenKnife>(out var knife) && knife.IsDesktopCutting) return;
             Transform eye = viewCamera.transform;
             Vector3 goal = holdAnchor != null ? holdAnchor.position : eye.position + eye.forward * holdDistance - eye.up * 0.16f;
+            if (panTossStarted >= 0f && heldGrab.GetComponent<KitchenPan>())
+            {
+                float t = (Time.time - panTossStarted) / .32f;
+                if (t < 1f) goal += Vector3.up * (Mathf.Sin(t * Mathf.PI) * panTossHeight);
+                else panTossStarted = -1f;
+            }
             Vector3 displacement = goal - eye.position;
             float length = displacement.magnitude;
             if (length > 0.01f)
@@ -481,6 +522,7 @@ namespace HouseSim.Kitchen
 
         public void Release(bool toss = false)
         {
+            panTossStarted = -1f;
             if (heldFood != null) heldFood.SetDesktopHeld(false);
             if (heldMarker != null) heldMarker.SetHeld(false);
             if (heldBody != null)
@@ -533,7 +575,7 @@ namespace HouseSim.Kitchen
                 crosshairStyle.normal.textColor = Color.white;
             }
             float width = Mathf.Min(Screen.width - 24, 980f);
-            GUI.Box(new Rect(12, Screen.height - 91, width, 79), "PC  |  WASD move  |  Hold RMB to look  |  Point with cursor; hold LMB to drag controls\nClick grab / drop / button  |  E button  |  Wheel held reach  |  F eat  |  C cut  |  R level\n" + (heldGrab != null ? "Holding: " + heldGrab.name + "   " : "") + focusedLabel, helpStyle);
+            GUI.Box(new Rect(12, Screen.height - 91, width, 79), "PC | WASD move | Hold RMB look | Hold LMB drag controls | Click grab / drop\nE button | Wheel reach | F eat | Knife + C cut | Pan + Space toss (Shift: hard) | R level\n" + (heldGrab != null ? "Holding: " + heldGrab.name + "   " : "") + focusedLabel, helpStyle);
             if (Cursor.lockState == CursorLockMode.Locked)
                 GUI.Label(new Rect(Screen.width * 0.5f - 12f, Screen.height * 0.5f - 15f, 24f, 30f), "+", crosshairStyle);
         }

@@ -1094,6 +1094,7 @@ GameObject:
   - component: {fileID: 7994346167171602299}
   - component: {fileID: 8368938875280705478}
   - component: {fileID: 7707923924122625747}
+  - component: {fileID: 5405669840425962213}
   m_Layer: 0
   m_Name: Salad
   m_TagString: Untagged
@@ -1347,6 +1348,21 @@ MonoBehaviour:
   recoveryAnchor: {fileID: 0}
   minimumY: -2.5
   maximumDistance: 25
+--- !u!114 &5405669840425962213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6878139394360441534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 587d39278f3c640449ab0c87889cf57b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenItemInfo
+  title: Food
+  description: Prepare before eating. Bring a meal to your mouth + trigger, or hold
+    it and press F on PC.
 --- !u!1 &7600120350997666103
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,13 +7,6 @@ namespace HouseSim.Kitchen
         public string id;
         [TextArea] public string message;
         public float distance = 1.35f;
-        bool shown;
-        void Update()
-        {
-            if (shown || KitchenSession.Instance == null || Camera.main == null) return;
-            if (Vector3.Distance(Camera.main.transform.position, transform.position) > distance) return;
-            shown = true;
-            KitchenSession.Instance.Tutorial(id, message, transform.position + Vector3.up * .2f);
-        }
+        // Legacy authoring metadata only. Pointed-item HUD replaces proximity popups.
     }
 }

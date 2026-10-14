@@ -32,6 +32,8 @@ namespace HouseSim.Kitchen
         private float currentAngle;
         private float targetAngle;
         private bool movingToTarget;
+        private bool audioReady;
+        private KitchenAudioEmitter audioEmitter;
 
         private void Awake()
         {
@@ -42,6 +44,7 @@ namespace HouseSim.Kitchen
             interactable.selectEntered.AddListener(OnGrab);
             interactable.selectExited.AddListener(OnRelease);
             ApplyAngle();
+            audioReady = true;
         }
 
         private void OnDestroy()
@@ -51,7 +54,11 @@ namespace HouseSim.Kitchen
             interactable.selectExited.RemoveListener(OnRelease);
         }
 
-        private void OnDisable() => EndDrag();
+        private void OnDisable()
+        {
+            EndDrag();
+            if (audioEmitter) audioEmitter.StopAll();
+        }
 
         private void OnGrab(SelectEnterEventArgs args)
         {
@@ -135,6 +142,13 @@ namespace HouseSim.Kitchen
             if (nextOpen != IsOpen)
             {
                 IsOpen = nextOpen;
+                // Hysteresis requires a deliberate opening and an almost fully closed
+                // door. Holding or wiggling an already open door does not repeat cues.
+                if (audioReady && isActiveAndEnabled)
+                {
+                    if (!audioEmitter) audioEmitter = KitchenAudioEmitter.Get(this);
+                    audioEmitter.PlayCue(IsOpen ? KitchenSound.DoorOpen : KitchenSound.DoorClose);
+                }
                 stateChanged.Invoke(IsOpen);
             }
             if (label) label.text = labelPrefix + "\n" + (IsOpen ? "OPEN" : "CLOSED");

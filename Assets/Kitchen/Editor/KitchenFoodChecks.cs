@@ -23,15 +23,17 @@ namespace HouseSim.Kitchen.Editor
 
             Check(KitchenFoodRules.TryGetEnergyChange(FoodKind.Salad, FoodState.Good, false, out int clean) && clean == 20, "Clean salad gives 20.");
             Check(KitchenFoodRules.TryGetEnergyChange(FoodKind.Salad, FoodState.Good, true, out int dirty) && dirty == -15, "Contaminated salad costs 15.");
+            foreach (FoodState state in Enum.GetValues(typeof(FoodState)))
+                Check(KitchenFoodRules.TryGetEnergyChange(FoodKind.Steak, state, true, out int spoiled) && spoiled == -15, "Spilled steak always costs 15 energy.");
             foreach (var produce in new[] { FoodKind.Tomato, FoodKind.Lettuce, FoodKind.Apple })
                 Check(!KitchenFoodRules.TryGetEnergyChange(produce, FoodState.Raw, false, out _), "Raw produce cannot be eaten as a finished dish.");
 
-            Check(KitchenFoodRules.AdvanceWash(0f, 2.99f) < 1f, "Washing under 3 seconds remains incomplete.");
-            Check(KitchenFoodRules.AdvanceWash(0f, 3f) == 1f, "Exactly 3 seconds completes washing.");
-            Check(KitchenFoodRules.AdvanceWash(KitchenFoodRules.AdvanceWash(0f, 1.5f), 1.5f) == 1f, "Washing can be split around chopping.");
+            Check(KitchenFoodRules.AdvanceWash(0f, 0.099f) < 1f, "Washing under 0.1 seconds remains incomplete.");
+            Check(KitchenFoodRules.AdvanceWash(0f, 0.1f) == 1f, "Exactly 0.1 seconds completes washing.");
+            Check(KitchenFoodRules.AdvanceWash(KitchenFoodRules.AdvanceWash(0f, 0.05f), 0.05f) == 1f, "Washing can be split around chopping.");
             float continuous = 0f;
-            for (int tick = 0; tick < 150; tick++) continuous = KitchenFoodRules.AdvanceWash(continuous, 0.02f);
-            Check(continuous == 1f, "150 physics ticks complete 3 seconds of washing.");
+            for (int tick = 0; tick < 5; tick++) continuous = KitchenFoodRules.AdvanceWash(continuous, 0.02f);
+            Check(continuous == 1f, "5 physics ticks complete 0.1 seconds of washing.");
             Check(KitchenFoodRules.AdvanceWash(1f, 12f) == 1f, "Wash progress cannot exceed 100 percent.");
             Check(KitchenFoodRules.AdvanceWash(0.5f, -1f) == 0.5f, "Negative time cannot undo washing.");
             Check(KitchenFoodRules.AdvanceWash(0.5f, float.NaN) == 0.5f, "NaN cannot corrupt washing.");

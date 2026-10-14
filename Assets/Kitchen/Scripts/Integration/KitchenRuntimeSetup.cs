@@ -47,11 +47,17 @@ namespace HouseSim.Kitchen
                 if (desktop == null) desktop = origin.gameObject.AddComponent<KitchenDesktopController>();
                 desktop.viewCamera = cam;
                 desktop.playerRoot = origin.transform;
+                desktop.showHelp = false;
             }
             var hud = gameObject.GetComponent<KitchenEnergyHUD>();
             if (!hud) hud = gameObject.AddComponent<KitchenEnergyHUD>();
             hud.session = session;
             hud.viewCamera = cam;
+            var context = gameObject.GetComponent<KitchenContextHUD>();
+            if (!context) context = gameObject.AddComponent<KitchenContextHUD>();
+            context.viewCamera = cam;
+            context.playerRoot = origin.transform;
+            context.desktop = origin.GetComponent<KitchenDesktopController>();
             var recovery = gameObject.GetComponent<KitchenPlayerRecovery>();
             if (!recovery) recovery = gameObject.AddComponent<KitchenPlayerRecovery>();
             recovery.origin = origin;

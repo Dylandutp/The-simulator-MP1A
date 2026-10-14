@@ -23,6 +23,7 @@ namespace HouseSim.Kitchen
         {
             propertyBlock = new MaterialPropertyBlock();
             if (!pan) pan = GetComponentInChildren<KitchenPan>(true);
+            if (pan && !pan.GetComponent<KitchenPanHeat>()) pan.gameObject.AddComponent<KitchenPanHeat>();
         }
 
         private void Update() => Tick(Time.deltaTime);
@@ -47,9 +48,17 @@ namespace HouseSim.Kitchen
             }
             IsHeating = power > 0 && PanIsOnBurner();
             RefreshLabel(power);
-            if (!IsHeating) return;
-            float rate = 2f * power;
-            foreach (KitchenFood food in pan.GetSteaks()) food.ApplyHeat(deltaTime * rate);
+            if (IsHeating)
+            {
+                var heat = pan.GetComponent<KitchenPanHeat>();
+                if (!heat) heat = pan.gameObject.AddComponent<KitchenPanHeat>();
+                heat.MarkHeatingFrame(power, 2f * power);
+            }
+        }
+
+        private void OnDisable()
+        {
+            IsHeating = false;
         }
 
         private void RefreshLabel(float power)
