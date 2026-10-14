@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 978e694813ac4f4cb0bb4f545e95610e, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c37a1a1de7feaa46a10f31abca4c55d, type: 3}
   m_Name: energyStick
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.ResourceData
   resourceName: energyStick
