@@ -11,11 +11,8 @@ GameObject:
   - component: {fileID: 8325343910002678829}
   - component: {fileID: 7486522437966509389}
   - component: {fileID: 5389642342328909031}
-  - component: {fileID: 7782675454712060039}
-  - component: {fileID: 7837783199172293424}
-  - component: {fileID: 8476239210167308084}
-  - component: {fileID: 6229116453447861348}
   - component: {fileID: 4080549696255235419}
+  - component: {fileID: 8684766575092648366}
   m_Layer: 0
   m_Name: Rusty Dumbbells
   m_TagString: Untagged
@@ -87,61 +84,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &7782675454712060039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4963793600319056534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Rusty Dumbbells
-  primaryStat: {fileID: 11400000, guid: a1000019000040008000000000000001, type: 2}
-  primaryStatValue: 25
-  secondaryStat: {fileID: 0}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &7837783199172293424
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4963793600319056534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000004000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.DumbbellFloorCollision
---- !u!114 &8476239210167308084
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4963793600319056534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000005000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.RustyDumbbells
-  massStat: {fileID: 11400000, guid: a1000019000040008000000000000001, type: 2}
---- !u!114 &6229116453447861348
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4963793600319056534}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &4080549696255235419
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -152,7 +94,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
   m_InteractionManager: {fileID: 0}
   m_Colliders: []
@@ -272,6 +214,19 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
+--- !u!114 &8684766575092648366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4963793600319056534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: rustyDumbbell
 --- !u!1001 &896006914327202413
 PrefabInstance:
   m_ObjectHideFlags: 0

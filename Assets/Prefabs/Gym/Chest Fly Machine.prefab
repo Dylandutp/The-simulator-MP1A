@@ -1429,11 +1429,8 @@ GameObject:
   m_Component:
   - component: {fileID: 9118546377623210558}
   - component: {fileID: 6618622160331366302}
-  - component: {fileID: 1409920558348536561}
   - component: {fileID: 1350380998269255995}
-  - component: {fileID: 1879753011562978774}
-  - component: {fileID: 7624449112501856009}
-  - component: {fileID: 8449299055814808554}
+  - component: {fileID: 4210345146670800773}
   m_Layer: 0
   m_Name: Chest Fly Machine
   m_TagString: Untagged
@@ -1484,18 +1481,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.4, y: 1.65, z: 1.35}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1409920558348536561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8803809133798758877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &1350380998269255995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1570,7 +1555,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &1879753011562978774
+--- !u!114 &4210345146670800773
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1579,47 +1564,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8803809133798758877}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Chest Fly Machine
-  primaryStat: {fileID: 11400000, guid: a1000009000040008000000000000001, type: 2}
-  primaryStatValue: 80
-  secondaryStat: {fileID: 11400000, guid: a1000010000040008000000000000001, type: 2}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &7624449112501856009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8803809133798758877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97883fdf951173eb1bda35a155dc6a87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.WorkoutMachine
-  targetGainResource: {fileID: 11400000, guid: 1565e42780d327ecf9f6199ed7edb7c1, type: 2}
-  energyResource: {fileID: 11400000, guid: 29f046b09e5fd6878827043808d959ff, type: 2}
-  hydrationResource: {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
-  stressResource: {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
-  machineStats: {fileID: 1879753011562978774}
-  gainMultiplier: 1
---- !u!114 &8449299055814808554
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8803809133798758877}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 1879753011562978774}
-  gaugeText: {fileID: 3231306561656317981}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: chestFly
 --- !u!1 &8818040202531354420
 GameObject:
   m_ObjectHideFlags: 0

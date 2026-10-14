@@ -1118,11 +1118,8 @@ GameObject:
   m_Component:
   - component: {fileID: 7113574540983824661}
   - component: {fileID: 3408658921260544731}
-  - component: {fileID: 277123525730845143}
   - component: {fileID: 2230358248831045549}
-  - component: {fileID: 6927621075578533504}
-  - component: {fileID: 303323144062380870}
-  - component: {fileID: 2555314334920705025}
+  - component: {fileID: 4575755853166877306}
   m_Layer: 0
   m_Name: Rowing Machine
   m_TagString: Untagged
@@ -1173,18 +1170,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.85, y: 0.65, z: 1.4}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &277123525730845143
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8352562707261092209}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &2230358248831045549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1259,7 +1244,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &6927621075578533504
+--- !u!114 &4575755853166877306
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1268,47 +1253,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 8352562707261092209}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Rowing Machine
-  primaryStat: {fileID: 11400000, guid: a1000013000040008000000000000001, type: 2}
-  primaryStatValue: 5
-  secondaryStat: {fileID: 11400000, guid: a1000014000040008000000000000001, type: 2}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &303323144062380870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8352562707261092209}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97883fdf951173eb1bda35a155dc6a87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.WorkoutMachine
-  targetGainResource: {fileID: 11400000, guid: 604cfa460e0d80e30bcc875972c66c21, type: 2}
-  energyResource: {fileID: 11400000, guid: 29f046b09e5fd6878827043808d959ff, type: 2}
-  hydrationResource: {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
-  stressResource: {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
-  machineStats: {fileID: 6927621075578533504}
-  gainMultiplier: 1
---- !u!114 &2555314334920705025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8352562707261092209}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 6927621075578533504}
-  gaugeText: {fileID: 6514447874178964906}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: rowingMachine
 --- !u!1 &9079964697281307477
 GameObject:
   m_ObjectHideFlags: 0

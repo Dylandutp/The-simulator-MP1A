@@ -686,11 +686,8 @@ GameObject:
   m_Component:
   - component: {fileID: 2431520844656659857}
   - component: {fileID: 3431067442189973306}
-  - component: {fileID: 3364904749911904264}
   - component: {fileID: 150168316866329558}
-  - component: {fileID: 7279455191050652437}
-  - component: {fileID: 4198286187556276446}
-  - component: {fileID: 106312728508054468}
+  - component: {fileID: 573327114986412218}
   m_Layer: 0
   m_Name: Lat Pulldown Machine
   m_TagString: Untagged
@@ -746,18 +743,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2, y: 1.95, z: 1.2}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3364904749911904264
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6864649140872659360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &150168316866329558
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -832,7 +817,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &7279455191050652437
+--- !u!114 &573327114986412218
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -841,47 +826,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 6864649140872659360}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Lat Pulldown Machine
-  primaryStat: {fileID: 11400000, guid: a1000011000040008000000000000001, type: 2}
-  primaryStatValue: 90
-  secondaryStat: {fileID: 11400000, guid: a1000012000040008000000000000001, type: 2}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &4198286187556276446
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6864649140872659360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97883fdf951173eb1bda35a155dc6a87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.WorkoutMachine
-  targetGainResource: {fileID: 11400000, guid: 604cfa460e0d80e30bcc875972c66c21, type: 2}
-  energyResource: {fileID: 11400000, guid: 29f046b09e5fd6878827043808d959ff, type: 2}
-  hydrationResource: {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
-  stressResource: {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
-  machineStats: {fileID: 7279455191050652437}
-  gainMultiplier: 1
---- !u!114 &106312728508054468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6864649140872659360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 7279455191050652437}
-  gaugeText: {fileID: 533074066540236424}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: latPulldown
 --- !u!1 &7166186652233315390
 GameObject:
   m_ObjectHideFlags: 0

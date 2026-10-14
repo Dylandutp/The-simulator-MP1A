@@ -10,11 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 6635628305237232267}
   - component: {fileID: 2052487247866085850}
-  - component: {fileID: 7785603650763124573}
-  - component: {fileID: 9129640267831508078}
-  - component: {fileID: 8041435934662894409}
   - component: {fileID: 8648212457990507915}
-  - component: {fileID: 2651182655248311727}
+  - component: {fileID: 5991317625045593618}
   m_Layer: 0
   m_Name: Protein Blender
   m_TagString: Untagged
@@ -65,50 +62,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7785603650763124573
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069933119306025937}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Protein Blender
-  primaryStat: {fileID: 11400000, guid: a1000020000040008000000000000001, type: 2}
-  primaryStatValue: 300
-  secondaryStat: {fileID: 0}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &9129640267831508078
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069933119306025937}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24924faa3f87b14b49b0fc2726fa9140, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.ProteinBlenderCrafting
-  hydrationResource: {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
-  stressResource: {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
---- !u!114 &8041435934662894409
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069933119306025937}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &8648212457990507915
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -183,7 +136,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &2651182655248311727
+--- !u!114 &5991317625045593618
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -192,11 +145,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1069933119306025937}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 7785603650763124573}
-  gaugeText: {fileID: 740407014903401978}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: shaker
 --- !u!1 &3022255457452992840
 GameObject:
   m_ObjectHideFlags: 0

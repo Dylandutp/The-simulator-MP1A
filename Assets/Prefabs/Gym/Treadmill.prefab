@@ -370,12 +370,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8478010532576811344}
   - component: {fileID: 4096707362069135950}
-  - component: {fileID: 3655601583218067739}
   - component: {fileID: 8920885186193931594}
-  - component: {fileID: 3856077222368941879}
-  - component: {fileID: 4059046056494629580}
-  - component: {fileID: 6716046179376196564}
-  - component: {fileID: 6708261759060977546}
+  - component: {fileID: 4310407379977498141}
   m_Layer: 0
   m_Name: Treadmill
   m_TagString: Untagged
@@ -426,18 +422,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 1.45, z: 1.4}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3655601583218067739
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2189399080156365071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &8920885186193931594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -512,7 +496,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &3856077222368941879
+--- !u!114 &4310407379977498141
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -521,66 +505,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2189399080156365071}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Treadmill
-  primaryStat: {fileID: 11400000, guid: a1000007000040008000000000000001, type: 2}
-  primaryStatValue: 5
-  secondaryStat: {fileID: 11400000, guid: a1000008000040008000000000000001, type: 2}
-  secondaryStatValue: 0
-  durability: 100
---- !u!114 &4059046056494629580
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2189399080156365071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97883fdf951173eb1bda35a155dc6a87, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.WorkoutMachine
-  targetGainResource: {fileID: 11400000, guid: 1c3a7afd67f042af1b1f138bde2499e0, type: 2}
-  energyResource: {fileID: 11400000, guid: 29f046b09e5fd6878827043808d959ff, type: 2}
-  hydrationResource: {fileID: 11400000, guid: c428c517e35da850ab9269eded5af590, type: 2}
-  stressResource: {fileID: 11400000, guid: 1eaa026fab0c05c449683f596b4d02b9, type: 2}
-  machineStats: {fileID: 3856077222368941879}
-  gainMultiplier: 1
---- !u!114 &6716046179376196564
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2189399080156365071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 3856077222368941879}
-  gaugeText: {fileID: 3308190661880261537}
---- !u!114 &6708261759060977546
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2189399080156365071}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: de76b0a9129698d59afd0492fffa537b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.TreadmillDistance
-  machineStats: {fileID: 3856077222368941879}
-  distanceStat: {fileID: 11400000, guid: a1000008000040008000000000000001, type: 2}
-  isRunning: 0
-  speedMPH: 5
-  beltRenderer: {fileID: 1339004534391757004}
-  beltScrollSpeed: 1.5
-  workoutMachine: {fileID: 4059046056494629580}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: treadmill
 --- !u!1 &2596946027969672885
 GameObject:
   m_ObjectHideFlags: 0

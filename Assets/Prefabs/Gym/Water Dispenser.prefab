@@ -744,11 +744,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4438766703463539945}
   - component: {fileID: 2226409166134496493}
-  - component: {fileID: 4657232089008950009}
-  - component: {fileID: 6728970892843277701}
-  - component: {fileID: 6146726957321305547}
   - component: {fileID: 1945701819242267246}
-  - component: {fileID: 6326477105888611391}
+  - component: {fileID: 1612042599243442750}
   m_Layer: 0
   m_Name: Water Dispenser
   m_TagString: Untagged
@@ -800,49 +797,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4657232089008950009
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8623867169791830455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Water Dispenser
-  primaryStat: {fileID: 11400000, guid: a1000018000040008000000000000001, type: 2}
-  primaryStatValue: 100
-  secondaryStat: {fileID: 0}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &6728970892843277701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8623867169791830455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea582e385d0019c2eaa46eb90c410bc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.WaterDispenser
-  dispenserStats: {fileID: 4657232089008950009}
---- !u!114 &6146726957321305547
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8623867169791830455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
 --- !u!114 &1945701819242267246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -917,7 +871,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
---- !u!114 &6326477105888611391
+--- !u!114 &1612042599243442750
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -926,8 +880,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8623867169791830455}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000010000040008000000000000001, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineDialGauge
-  machineStats: {fileID: 4657232089008950009}
-  gaugeText: {fileID: 1220993642729019222}
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: waterDispenser

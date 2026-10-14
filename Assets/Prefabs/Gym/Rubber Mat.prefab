@@ -12,9 +12,7 @@ GameObject:
   - component: {fileID: 2482527191078804765}
   - component: {fileID: 1678539385110451462}
   - component: {fileID: 5828832851642399596}
-  - component: {fileID: 6068073690848126394}
-  - component: {fileID: 6634941838685782599}
-  - component: {fileID: 1003096857777654773}
+  - component: {fileID: 265216753611915611}
   m_Layer: 0
   m_Name: Rubber Mat
   m_TagString: Untagged
@@ -116,7 +114,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6068073690848126394
+--- !u!114 &265216753611915611
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -125,38 +123,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2182821262973797412}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000003000040008000000000000001, type: 3}
+  m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.RubberMatFoundation
-  gridCell: {x: 0, y: 0}
-  builder: {fileID: 0}
---- !u!114 &6634941838685782599
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2182821262973797412}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5522f0defc66095b96d886a53fdb42e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineStats
-  machineName: Rubber Mat
-  primaryStat: {fileID: 11400000, guid: a1000017000040008000000000000001, type: 2}
-  primaryStatValue: 100
-  secondaryStat: {fileID: 0}
-  secondaryStatValue: 100
-  durability: 100
---- !u!114 &1003096857777654773
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2182821262973797412}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2000006000040008000000000000001, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymActionInteractable
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
+  kind: rubberMat
