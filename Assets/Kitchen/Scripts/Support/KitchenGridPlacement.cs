@@ -78,6 +78,7 @@ namespace HouseSim.Kitchen
             GameObject instance = Instantiate(modulePrefabs[selected], position, cell.rotation * Quaternion.Euler(0,yaw,0), transform);
             instance.name = modulePrefabs[selected].name + " - Tile " + (cellIndex + 1);
             instance.SetActive(true);
+            HouseSim.RoomCombine.WorldText.Apply(instance);
             if (selected == 0) foundations[cellIndex] = instance;
             else equipment[cellIndex] = instance;
             Feedback("Built " + modulePrefabs[selected].name + " on tile " + (cellIndex + 1) + ".", "Built on tile " + (cellIndex + 1));

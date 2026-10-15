@@ -11,6 +11,7 @@ namespace HouseSim.Kitchen
         public KitchenSession session;
         IEnumerator Start()
         {
+            HouseSim.RoomCombine.WorldText.Apply(gameObject);
             bool createdPlayer = FindFirstObjectByType<XROrigin>() == null;
             if (createdPlayer)
             {
