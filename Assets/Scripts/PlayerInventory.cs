@@ -15,14 +15,14 @@ public class PlayerInventory : MonoBehaviour
 
     private void OnEnable()
     {
-        HouseEvents.onResourceHarvest += HandleResourceGained;
-        HouseEvents.onResourceSpent += HandleResourceSpent;
+        HouseEvents.OnResourceGained += HandleResourceGained;
+        HouseEvents.OnResourceSpent += HandleResourceSpent;
     }
 
     private void OnDisable()
     {
-        HouseEvents.onResourceHarvest -= HandleResourceGained;
-        HouseEvents.onResourceSpent -= HandleResourceSpent;
+        HouseEvents.OnResourceGained -= HandleResourceGained;
+        HouseEvents.OnResourceSpent -= HandleResourceSpent;
     }
 
     private void HandleResourceGained(ResourceData resource, int amount)

@@ -2,16 +2,15 @@ using UnityEngine;
 
 namespace HouseSim{
 
-/// <summary>
-/// Serves as a data container for prefab stats.
-/// Can be instantiated in the project via the Create Asset menu.
-/// </summary>
-[CreateAssetMenu(fileName = "StatData", menuName = "Scriptable Objects/StatData")]
+/// <summary>Shared definition for a value tracked by a room object.</summary>
+[CreateAssetMenu(fileName = "Stat", menuName = "House Sim/Stat")]
 public class StatData : ScriptableObject
 {
-    [SerializeField] private string statName;
-    [SerializeField] private float maxValue;
-    [SerializeField] private Color uiColor; // For health bars, etc.
+    public string statName;
+    public float defaultValue;
+    public float minValue;
+    public float maxValue = 100f;
+    public Color uiColor = Color.white;
 }   
 
 }   // namespace HouseSim
