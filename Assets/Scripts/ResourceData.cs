@@ -14,6 +14,14 @@ public class ResourceData : ScriptableObject
     public float maxValue = 100f;
     public Sprite icon;
     [TextArea] public string description;
+    public string DisplayName => string.IsNullOrWhiteSpace(resourceName) ? name : resourceName;
+    public Sprite Icon => icon;
+    public string Description => description;
+    public void Configure(string displayName, string details = "")
+    {
+        resourceName = displayName;
+        description = details;
+    }
 }    
 
 }   // namespace HouseSim

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88443725a5a5594dada4913cfa4c5a9, type: 3}
+  m_Name: Steak
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Kitchen.KitchenFoodDefinition
+  displayName: Pan-seared steak
+  kind: 1
+  rawResource: {fileID: 11400000, guid: f97ffe2c62698cf4ba02dbefa1325fd3, type: 2}
+  preparedResource: {fileID: 11400000, guid: f97ffe2c62698cf4ba02dbefa1325fd3, type: 2}
+  cookedResource: {fileID: 11400000, guid: 3734afe8fab934044b8f1f967150bdc4, type: 2}
+  prefab: {fileID: 2226456801061305781, guid: 494a2c761f262424083e1b6f274dfd75, type: 3}
+  choppedPrefab: {fileID: 0}
+  rawColor: {r: 0.62, g: 0.12, b: 0.11, a: 1}
+  cookedColor: {r: 0.39, g: 0.19, b: 0.075, a: 1}
+  burntColor: {r: 0.055, g: 0.04, b: 0.03, a: 1}
+  goodAtSeconds: 8
+  burntAtSeconds: 18

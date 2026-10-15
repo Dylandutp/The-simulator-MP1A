@@ -107,3 +107,21 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Unity editor-generated local setup and temporary performance-build resources.
+/.vsconfig
+/ProjectSettings/SceneTemplateSettings.json
+/Assets/Resources/PerformanceTestRunInfo.json*
+/Assets/Resources/PerformanceTestRunSettings.json*
+
+# Local project documentation
+/AGENTS.md
+/AGENTS.md.meta
+/README.md
+/README.md.meta
+/Assets/Docs/
+/Assets/Docs.meta
+/Assets/Kitchen/Documentation/
+/Assets/Kitchen/Documentation.meta
+/Assets/Kitchen/README.md
+/Assets/Kitchen/README.md.meta
