@@ -10,20 +10,9 @@ namespace HouseSim
 /// </summary>
 public static class HouseEvents
 {
-    /// <summary>
-    /// Triggered when a resource is added to the inventory.
-    /// </summary>
-    public static event Action<ResourceData, int> onResourceHarvest;
-
-    /// <summary>
-    /// Triggered when a resource is consumed from the inventory.
-    /// </summary>
-    public static event Action<ResourceData, int> onResourceSpent;
-
-    /// <summary>
-    /// Triggered when a <c>GameObject</c>'s stat changes.
-    /// </summary>
-    public static event Action<StatData, float, GameObject> onStatChange;
+    public static event Action<ResourceData, int> OnResourceGained;
+    public static event Action<ResourceData, int> OnResourceSpent;
+    public static event Action<StatData, float, GameObject> OnStatChanged;
 
     /// <summary>
     /// Invokes the <c>onResourceHarvest</c> event
@@ -32,7 +21,7 @@ public static class HouseEvents
     /// <param name="amount">The quantity gained</param>
     public static void ReportResourceGained(ResourceData resource, int amount)
     {
-        onResourceHarvest?.Invoke(resource, amount);
+        OnResourceGained?.Invoke(resource, amount);
     }
 
     /// <summary>
@@ -42,12 +31,12 @@ public static class HouseEvents
     /// <param name="amount">The quantity spent</param>
     public static void ReportResourceSpent(ResourceData resource, int amount)
     {
-        onResourceSpent?.Invoke(resource, amount);
+        OnResourceSpent?.Invoke(resource, amount);
     }
 
     public static void ReportStatChanged(StatData stat, float value, GameObject source)
     {
-        onStatChange?.Invoke(stat, value, source);
+        OnStatChanged?.Invoke(stat, value, source);
     }
 }
 

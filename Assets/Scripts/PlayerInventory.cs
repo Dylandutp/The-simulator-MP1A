@@ -11,13 +11,13 @@ namespace HouseSim
         public event Action<ResourceData, int> Changed;
         void OnEnable()
         {
-            HouseEvents.onResourceHarvest += HandleResourceGained;
-            HouseEvents.onResourceSpent += HandleResourceSpent;
+            HouseEvents.OnResourceGained += HandleResourceGained;
+            HouseEvents.OnResourceSpent += HandleResourceSpent;
         }
         void OnDisable()
         {
-            HouseEvents.onResourceHarvest -= HandleResourceGained;
-            HouseEvents.onResourceSpent -= HandleResourceSpent;
+            HouseEvents.OnResourceGained -= HandleResourceGained;
+            HouseEvents.OnResourceSpent -= HandleResourceSpent;
         }
         void HandleResourceGained(ResourceData resource, int amount)
         {
