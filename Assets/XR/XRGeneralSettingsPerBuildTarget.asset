@@ -61,9 +61,6 @@ MonoBehaviour:
   m_AutomaticLoading: 0
   m_AutomaticRunning: 0
   m_Loaders:
-<<<<<<< HEAD
-  - {fileID: 11400000, guid: 7a3821d93718526428bb4a849fc06f26, type: 2}
-=======
   - {fileID: 11400000, guid: eb14de923a38fee428e740e6258a962e, type: 2}
 --- !u!114 &11400000
 MonoBehaviour:
@@ -84,4 +81,3 @@ MonoBehaviour:
     settings: {fileID: -2136815131285422455}
   - buildTarget: 7
     settings: {fileID: -4119476328715109324}
->>>>>>> 8118899246c5ca3a4302ab3b80347d8ff4e895d0

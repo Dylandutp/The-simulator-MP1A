@@ -12392,6 +12392,10 @@ PrefabInstance:
       propertyPath: m_text
       value: "Requirement: - Water \xD71  \xB7  Powder \xD71\nEffect: - Energy +20"
       objectReference: {fileID: 0}
+    - target: {fileID: 8443291540407857187, guid: 8d1ee5b3b33010a52afba253e2e8412f, type: 3}
+      propertyPath: recipeButtons.Array.size
+      value: 6
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 2656868677627471811, guid: 8d1ee5b3b33010a52afba253e2e8412f, type: 3}
