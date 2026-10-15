@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: health
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.ResourceData
   resourceName: health
-  startingValue: 100
+  startingValue: 50
   minValue: 0
   maxValue: 100
   icon: {fileID: 0}

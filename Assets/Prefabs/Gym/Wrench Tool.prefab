@@ -14,6 +14,10 @@ GameObject:
   - component: {fileID: 4759853242845540029}
   - component: {fileID: 8961156282509335641}
   - component: {fileID: 7867354015470481733}
+  - component: {fileID: 6443518077493883864}
+  - component: {fileID: 8408527576238437242}
+  - component: {fileID: 2801121830600983771}
+  - component: {fileID: 3528009278827627059}
   m_Layer: 0
   m_Name: Wrench Tool
   m_TagString: Untagged
@@ -42,6 +46,7 @@ Transform:
   - {fileID: 7367537647888886108}
   - {fileID: 1479001970505161647}
   - {fileID: 8406882924360883453}
+  - {fileID: 7646702738196965305}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &4999786066099534902
@@ -123,7 +128,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.XR.Interaction.Toolkit::UnityEngine.XR.Interaction.Toolkit.Interactables.XRGrabInteractable
   m_InteractionManager: {fileID: 0}
   m_Colliders: []
@@ -189,13 +194,13 @@ MonoBehaviour:
   m_ParentInteractableObject: {fileID: 0}
   m_AttachTransform: {fileID: 0}
   m_SecondaryAttachTransform: {fileID: 0}
-  m_UseDynamicAttach: 0
+  m_UseDynamicAttach: 1
   m_MatchAttachPosition: 1
   m_MatchAttachRotation: 1
   m_SnapToColliderVolume: 1
   m_ReinitializeDynamicAttachEverySingleGrab: 1
   m_AttachEaseInTime: 0.15
-  m_MovementType: 2
+  m_MovementType: 1
   m_PredictedVisualsTransform: {fileID: 0}
   m_VelocityDamping: 1
   m_VelocityScale: 1
@@ -213,7 +218,7 @@ MonoBehaviour:
   m_SmoothScale: 0
   m_SmoothScaleAmount: 8
   m_TightenScale: 0.1
-  m_ThrowOnDetach: 1
+  m_ThrowOnDetach: 0
   m_ThrowSmoothingDuration: 0.25
   m_ThrowSmoothingCurve:
     serializedVersion: 2
@@ -253,9 +258,155 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b76743539c34d209e43ca1d6c6c1bae, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymSimPrefab
   kind: wrench
+--- !u!114 &6443518077493883864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107571076164795585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e655817f197dd1a88e84c3eb30c10acc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.GymEquipmentPlacement
+--- !u!82 &8408527576238437242
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107571076164795585}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 4bad461d22d3c05eb951a06c2a779de2, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 0.5
+  MaxDistance: 8
+  Pan2D: 0
+  rolloffMode: 1
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &2801121830600983771
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107571076164795585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbfdd113633044c3a5d5b04008ec5c84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.MachineEffects
+  loopSource: {fileID: 8408527576238437242}
+  effectParticles: {fileID: 7203196312520379294}
+  sessionClip: {fileID: 8300000, guid: 4bad461d22d3c05eb951a06c2a779de2, type: 3}
+--- !u!114 &3528009278827627059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 107571076164795585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64bf7bbea2544884822f51fc6c94fba8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HouseSim.Gym.HoverOutline
+  targetRenderers:
+  - {fileID: 5548570771291278751}
+  - {fileID: 8616180942277873753}
+  - {fileID: 8502644110016714794}
+  - {fileID: 2685995914149914329}
+  - {fileID: 1928211319261541642}
+  - {fileID: 7013957389481898346}
+  - {fileID: 7032825374443974549}
+  - {fileID: 8836967712756283597}
+  outlineMaterial: {fileID: 2100000, guid: 88f802f5fa8563c8c8782aac72db458a, type: 2}
 --- !u!1 &625467159949783504
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,3 +1127,70 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &8610063333925146892
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6860451322646648736}
+    m_Modifications:
+    - target: {fileID: 740400314349092164, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_Name
+      value: Repair Effects
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.003215056
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.04744125
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+--- !u!198 &7203196312520379294 stripped
+ParticleSystem:
+  m_CorrespondingSourceObject: {fileID: 1480543097062890130, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+  m_PrefabInstance: {fileID: 8610063333925146892}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7646702738196965305 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2117709266864699061, guid: 8b6a17a4bde8bf94f8504bf8f62f0fda, type: 3}
+  m_PrefabInstance: {fileID: 8610063333925146892}
+  m_PrefabAsset: {fileID: 0}

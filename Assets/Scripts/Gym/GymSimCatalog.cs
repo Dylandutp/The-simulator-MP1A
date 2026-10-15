@@ -8,8 +8,6 @@ namespace HouseSim.Gym
     {
         public ResourceData[] sharedResources;
         public StatData[] sharedStats;
-        public GymSimResourceDefinition[] playerResources;
-        public string[] requiredStatNames;
         public GymSimPrefabDefinition[] prefabs;
 
         public GameObject FindPrefab(string kind)

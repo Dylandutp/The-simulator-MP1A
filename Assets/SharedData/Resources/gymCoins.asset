@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: gymCoins
   m_EditorClassIdentifier: Assembly-CSharp::HouseSim.ResourceData
   resourceName: gymCoins
-  startingValue: 0
+  startingValue: 500
   minValue: 0
   maxValue: 999
   icon: {fileID: 0}
+  description: 

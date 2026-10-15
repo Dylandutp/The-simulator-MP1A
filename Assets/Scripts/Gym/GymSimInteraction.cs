@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace HouseSim.Gym
@@ -6,59 +5,103 @@ namespace HouseSim.Gym
     /// <summary>Controller movement, aiming, hover feedback, and context interactions.</summary>
     public sealed partial class GymSim
     {
-        void UpdateLocomotion(float dt)
-        {
-            Vector2 axis = move.ReadValue<Vector2>();
-            Vector3 forward = Vector3.ProjectOnPlane(headset.forward, Vector3.up).normalized;
-            Vector3 right = Vector3.ProjectOnPlane(headset.right, Vector3.up).normalized;
-            rigRoot.position += (forward * axis.y + right * axis.x) * 2f * dt;
-            Vector2 turnAxis = turn.ReadValue<Vector2>();
-            if (Mathf.Abs(turnAxis.x) >= .7f && Time.time >= nextTurnTime)
-            {
-                rigRoot.Rotate(0f, Mathf.Sign(turnAxis.x) * 45f, 0f);
-                nextTurnTime = Time.time + .25f;
-            }
-        }
-
-        void UpdateHeldPreview()
-        {
-            if (heldPreview == null) return;
-            string selected = Slots[slot];
-            heldPreview.name = "Held " + selected;
-            heldPreview.GetComponent<Renderer>().material.color = selected == "wrench" ? Color.gray : selected == "rubberMat" ? Color.black : new Color(.25f, .38f, .5f);
-        }
-
         void UpdateRay()
         {
+            // Unity objects compare equal to null after destruction while still holding
+            // a managed reference. Clear that reference before calling any component API.
+            if (hover == null) hover = null;
+
             Ray ray = new Ray(rightHand.position, rightHand.forward);
             GymSimThing next = null;
-            if (Physics.Raycast(ray, out RaycastHit hit, 15f)) next = hit.collider.GetComponentInParent<GymSimThing>();
-            if (hover != next) { if (hover != null) hover.Highlight(false); hover = next; if (hover != null) hover.Highlight(true); }
-            if (hover == null) { tooltip.gameObject.SetActive(false); return; }
-            tooltip.gameObject.SetActive(true);
-            tooltip.transform.position = hover.transform.position + Vector3.up * 1.1f;
-            tooltip.transform.rotation = Quaternion.LookRotation(tooltip.transform.position - headset.position);
-            tooltip.text = hover.Tooltip();
+            RaycastHit[] hits = Physics.RaycastAll(ray, 15f);
+            System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+            foreach (RaycastHit hit in hits)
+            {
+                GymSimThing candidate = hit.collider.GetComponentInParent<GymSimThing>();
+                if (candidate == null) continue;
+                if (wrenchEquipped && candidate.kind == "wrench") continue;
+                next = candidate;
+                break;
+            }
+            if (hover == next) return;
+
+            if (hover != null) hover.GetComponent<HoverOutline>()?.SetManualHighlight(false);
+            hover = next;
+            if (hover != null) hover.GetComponent<HoverOutline>()?.SetManualHighlight(true);
         }
 
         void HandleUse()
         {
-            if (use.WasPressedThisFrame()) { if (placing) { Place(); return; } if (hover != null) Interact(hover); else BeginPlacement(Slots[slot]); }
-            if (activeMachine != null && (!use.IsPressed() || hover != activeMachine || Vector3.Distance(headset.position, activeMachine.transform.position) > 2.5f)) EndSession();
-            if (activeMachine != null && use.IsPressed()) Exercise(Time.deltaTime);
+            if (cancel.WasPressedThisFrame())
+            {
+                if (repairTarget != null) CancelRepair();
+                else if (activeMachine != null) EndSession();
+            }
+
+            if (activeMachine == null && TutorialPopupBlocksGameplay()) return;
+
+            if (use.WasPressedThisFrame() && activeMachine == null && repairTarget == null && activeDispenser == null)
+            {
+                if (wrenchEquipped && wrenchContact != null && wrenchContact.TryGetRepairTarget(out GymSimThing contactTarget) && NeedsRepair(contactTarget))
+                {
+                    BeginRepair(contactTarget);
+                    return;
+                }
+                if (hover != null) Interact(hover);
+            }
+
+            if (activeMachine == null) return;
+            if (!activeMachine.placed || Vector3.Distance(headset.position, activeMachine.transform.position) > 2.5f)
+            {
+                EndSession();
+                return;
+            }
+            Exercise(Time.deltaTime);
+        }
+
+        bool TutorialPopupBlocksGameplay()
+        {
+            if (introPopup == null) introPopup = FindAnyObjectByType<IntroPopup>();
+            if (introPopup != null && !introPopup.ReadyForGameplay) return true;
+            if (machineFirstUsePopup == null) machineFirstUsePopup = FindAnyObjectByType<MachineFirstUsePopup>();
+            return machineFirstUsePopup != null && machineFirstUsePopup.IsOpen;
         }
 
         void Interact(GymSimThing target)
         {
-            if (target.kind == "popup") { things.Remove(target); Destroy(target.gameObject); return; }
-            if (target.kind == "wallBoard") { OpenBoard(); return; }
-            if (target.kind.StartsWith("buy")) { Buy(target.kind.Substring(3)); return; }
-            if (target.kind.StartsWith("recipe")) { Craft(int.Parse(target.kind.Substring(6))); return; }
-            if (target.kind.StartsWith("wild")) { if (Vector3.Distance(headset.position, target.transform.position) <= 2f) { resources[target.kind.Substring(4)].Change(1); things.Remove(target); Destroy(target.gameObject); Toast("+1 " + target.kind.Substring(4)); } return; }
-            if (target.kind == "waterDispenser") { if (target.Get("waterReservoir").value >= 10 && resources["hydration"].value < 100) { target.Get("waterReservoir").Change(-10); resources["hydration"].Change(10); target.sessionParticles.Play(); target.sessionAudio.Play(); questProgress["drink"]++; Toast("+10 hydration"); } return; }
-            if (target.kind == "shaker") { OpenShaker(target); return; }
-            if (wrenchEquipped && (MachineGain.ContainsKey(target.kind) || target.kind == "rubberMat")) { Repair(target); return; }
-            if (MachineGain.ContainsKey(target.kind)) StartSession(target); else BeginPlacement(Slots[slot]);
+            if (target.kind == "wallBoard") return;
+            if (target.kind.StartsWith("wild"))
+            {
+                if (Vector3.Distance(headset.position, target.transform.position) <= 2f)
+                {
+                    resources[target.kind.Substring(4)].Change(1);
+                    questProgress?.Increment("wildItems", 1);
+                    things.Remove(target);
+                    Destroy(target.gameObject);
+                    Toast("+1 " + target.kind.Substring(4));
+                }
+                return;
+            }
+            if (target.kind == "waterDispenser") { BeginWaterDispense(target); return; }
+            if (target.kind == "shaker")
+            {
+                if (!target.placed) { Toast("Place the shaker before using it"); return; }
+                ShakerRecipePopup shakerMenu = target.GetComponent<ShakerRecipePopup>();
+                if (shakerMenu == null)
+                    shakerMenu = FindAnyObjectByType<ShakerRecipePopup>(FindObjectsInactive.Include);
+                if (shakerMenu == null)
+                {
+                    Toast("Shaker recipe popup is missing");
+                    return;
+                }
+                shakerMenu.OpenShakerMenu(target.effects);
+                return;
+            }
+            if (MachineGain.ContainsKey(target.kind))
+            {
+                if (!target.placed) { Toast("Place the machine on a rubber mat first"); return; }
+                StartSession(target);
+            }
         }
     }
 }
